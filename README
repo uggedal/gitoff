@@ -1,4 +1,11 @@
 gitoff
 ======
 
-Tiny git www interface
+Tiny git www interface.
+
+Building
+--------
+
+In order to build gitoff you need the libgit2 library and headers.
+
+Adjust config.mk to your system and run make.
