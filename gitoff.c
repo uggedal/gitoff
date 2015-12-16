@@ -184,7 +184,8 @@ render_repo(const char *path)
 }
 
 int
-render_index(void) {
+render_index(void)
+{
 	int ret = 0;
 
 	http_headers();
