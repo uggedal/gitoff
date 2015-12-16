@@ -173,7 +173,6 @@ render_repo(const char *path)
 	git_repository *r;
 	git_object *obj;
 	git_commit *ci;
-	git_time_t gt;
 
 	if (!(p = strdup(path)))
 		eprintf("strdup:");
@@ -189,12 +188,10 @@ render_repo(const char *path)
 	if (git_commit_lookup(&ci, r, git_object_id(obj)))
 		geprintf("commit lookup %s:", git_object_id(obj));
 
-	gt = git_commit_time(ci);
-
 	printf("<tr>\n"
 			"<td>%s</td>\n"
 			"<td>", b);
-	printgt(gt);
+	printgt(git_commit_time(ci));
 	puts("</td>\n"
 			"</tr>\n");
 
