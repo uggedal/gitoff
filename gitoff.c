@@ -204,9 +204,8 @@ main(int argc, char *argv[])
 {
 	int ret = 0;
 
-	ret = render_index();
-
 	git_libgit2_init();
+	ret = render_index();
 	git_libgit2_shutdown();
 
 	return ret;
