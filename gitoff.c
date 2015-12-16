@@ -12,6 +12,9 @@
 
 #include <git2.h>
 
+static char repos[MAX_REPOS][PATH_MAX];
+static int repo_index = 0;
+
 void
 eprintf(const char *fmt, ...)
 {
@@ -89,7 +92,7 @@ valid_git_dir(const char *dir)
 }
 
 int
-walk_repos(const char *dir, int depth, int (*cb)(const char *path))
+find_repos(const char *dir, int depth)
 {
 	int ret = 0;
 	DIR *dp;
@@ -108,13 +111,13 @@ walk_repos(const char *dir, int depth, int (*cb)(const char *path))
 			continue;
 
 		if (valid_git_dir(dir)) {
-			ret |= cb(dir);
+			strlcpy(repos[repo_index++], dir, sizeof(repos[0]));
 			break;
 		}
 
 		snprintf(buf, sizeof(buf), "%s/%s", dir, d->d_name);
 		if (has_file(dir, d->d_name, 1))
-			walk_repos(buf, depth, cb);
+			find_repos(buf, depth);
 	}
 
 	closedir(dp);
@@ -187,6 +190,7 @@ int
 render_index(void)
 {
 	int ret = 0;
+	int i;
 
 	http_headers();
 	render_header("Repositories");
@@ -194,7 +198,10 @@ render_index(void)
 			"<tr>\n"
 			"<th>&nbsp;</th>\n"
 			"<th>Latest commit</th>");
-	ret = walk_repos(SCAN_DIR, 0, render_repo);
+	ret = find_repos(SCAN_DIR, 0);
+	for (i = 0; i < repo_index; i++)
+		render_repo(repos[i]);
+
 	puts("</table>");
 	render_footer();
 	return ret;
