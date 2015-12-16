@@ -154,6 +154,7 @@ render_header(const char *title)
 			"<html>\n"
 			"<head>\n"
 			"<title>%s</title>\n"
+			"<link href=/style.css rel=stylesheet>\n"
 			"</head>\n"
 			"<body>\n"
 			"<h1>%s</h1>\n", title, title);
