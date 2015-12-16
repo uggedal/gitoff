@@ -93,7 +93,6 @@ walk_repos(const char *dir, int depth, int (*cb)(const char *path))
 	int ret = 0;
 	DIR *dp;
 	struct dirent *d;
-	struct stat st;
 	char buf[PATH_MAX];
 
 	if (depth >= 3)
@@ -109,20 +108,15 @@ walk_repos(const char *dir, int depth, int (*cb)(const char *path))
 
 		if (valid_git_dir(dir)) {
 			ret |= cb(dir);
-			goto cleanup;
+			break;
 		}
 
 		snprintf(buf, sizeof(buf), "%s/%s", dir, d->d_name);
-		if (stat(buf, &st) < 0)
-			eprintf("stat %s:", buf);
-
-		if (S_ISDIR(st.st_mode))
+		if (has_file(dir, d->d_name, 1))
 			walk_repos(buf, depth, cb);
 	}
 
-cleanup:
 	closedir(dp);
-
 	return ret;
 }
 
