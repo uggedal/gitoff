@@ -65,39 +65,26 @@ printgt(const git_time_t gt)
 }
 
 int
-valid_git_dir(const char *dir)
+has_file(const char *base, const char *file, int isdir)
 {
 	struct stat st;
 	char buf[PATH_MAX];
 
-	snprintf(buf, sizeof(buf), "%s/objects", dir);
+	snprintf(buf, sizeof(buf), "%s/%s", base, file);
 	if (stat(buf, &st) < 0) {
 		if (errno != ENOENT)
 			eprintf("stat %s:", buf);
 		return 0;
 	}
-	if (!S_ISDIR(st.st_mode))
-		return 0;
+	return isdir ? S_ISDIR(st.st_mode) : S_ISREG(st.st_mode);
+}
 
-	snprintf(buf, sizeof(buf), "%s/HEAD", dir);
-	if (stat(buf, &st) < 0) {
-		if (errno != ENOENT)
-			eprintf("stat %s:", buf);
-		return 0;
-	}
-	if (!S_ISREG(st.st_mode))
-		return 0;
-
-	snprintf(buf, sizeof(buf), "%s/refs", dir);
-	if (stat(buf, &st) < 0) {
-		if (errno != ENOENT)
-			eprintf("stat %s:", buf);
-		return 0;
-	}
-	if (!S_ISDIR(st.st_mode))
-		return 0;
-
-	return 1;
+int
+valid_git_dir(const char *dir)
+{
+	return has_file(dir, "objects", 1) &&
+		has_file(dir, "HEAD", 0) &&
+		has_file(dir, "refs", 1);
 }
 
 int
