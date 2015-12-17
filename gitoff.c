@@ -235,6 +235,7 @@ render_index(void)
 	} else {
 		puts("<p>No repositories in "SCAN_DIR"</p>");
 	}
+	free(rsp.repos);
 	render_footer();
 }
 
