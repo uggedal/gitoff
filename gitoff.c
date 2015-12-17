@@ -14,11 +14,13 @@
 
 struct repo {
 	char path[PATH_MAX];
-	git_time_t last_update;
+	git_time_t time;
 };
 
-static struct repo *repos = NULL;
-static size_t repos_n = 0;
+struct repos {
+	size_t n;
+	struct repo *repos;
+};
 
 void
 eprintf(const char *fmt, ...)
@@ -94,7 +96,7 @@ valid_git_dir(const char *dir)
 }
 
 void
-find_repos(const char *dir, int depth)
+find_repos(struct repos *rsp, const char *dir, int depth)
 {
 	DIR *dp;
 	struct dirent *d;
@@ -112,39 +114,41 @@ find_repos(const char *dir, int depth)
 			continue;
 
 		if (valid_git_dir(dir)) {
-			repos = reallocarray(repos, ++repos_n, sizeof(*repos));
-			strlcpy(repos[repos_n-1].path, dir, PATH_MAX);
+			rsp->repos = reallocarray(rsp->repos, ++rsp->n, sizeof(struct repo));
+			if (rsp->repos == NULL)
+				eprintf("reallocarray:");
+			strlcpy(rsp->repos[rsp->n - 1].path, dir, PATH_MAX);
 			break;
 		}
 
 		snprintf(buf, sizeof(buf), "%s/%s", dir, d->d_name);
 		if (has_file(dir, d->d_name, 1))
-			find_repos(buf, depth);
+			find_repos(rsp, buf, depth);
 	}
 
 	closedir(dp);
 }
 
 void
-parse_repos()
+parse_repos(struct repos *rsp)
 {
 	git_repository *r;
 	git_object *obj;
 	git_commit *ci;
 	size_t i;
-	struct repo *repo;
+	struct repo *rp;
 
-	for (i = 0; i < repos_n; i++) {
-		repo = &repos[i];
+	for (i = 0; i < rsp->n; i++) {
+		rp = &rsp->repos[i];
 
-		if (git_repository_open_bare(&r, repo->path))
-			geprintf("repo open %s:", repo->path);
+		if (git_repository_open_bare(&r, rp->path))
+			geprintf("repo open %s:", rp->path);
 		if (git_revparse_single(&obj, r, "HEAD"))
-			geprintf("revparse HEAD %s:", repo->path);
+			geprintf("revparse HEAD %s:", rp->path);
 		if (git_commit_lookup(&ci, r, git_object_id(obj)))
 			geprintf("commit lookup %s:", git_object_id(obj));
 
-		repo->last_update = git_commit_time(ci);
+		rp->time = git_commit_time(ci);
 
 		git_object_free(obj);
 		git_repository_free(r);
@@ -190,7 +194,7 @@ render_repo(const struct repo *repo)
 	printf("<tr>\n"
 			"<td>%s</td>\n"
 			"<td>", b);
-	printgt(repo->last_update);
+	printgt(repo->time);
 	puts("</td>\n"
 			"</tr>\n");
 
@@ -201,6 +205,9 @@ void
 render_index(void)
 {
 	size_t i;
+	struct repos rsp;
+	rsp.n = 0;
+	rsp.repos = NULL;
 
 	http_headers();
 	render_header("Repositories");
@@ -208,10 +215,10 @@ render_index(void)
 			"<tr>\n"
 			"<th>&nbsp;</th>\n"
 			"<th>Latest commit</th>");
-	find_repos(SCAN_DIR, 0);
-	parse_repos();
-	for (i = 0; i < repos_n; i++)
-		render_repo(&repos[i]);
+	find_repos(&rsp, SCAN_DIR, 0);
+	parse_repos(&rsp);
+	for (i = 0; i < rsp.n; i++)
+		render_repo(&rsp.repos[i]);
 
 	puts("</table>");
 	render_footer();
