@@ -65,11 +65,11 @@ printgt(const git_time_t gt)
 		return;
 
 	printf("%.4u-%02u-%02u %02u:%02u",
-			m.tm_year + 1900,
-			m.tm_mon + 1,
-			m.tm_mday,
-			m.tm_hour,
-			m.tm_min);
+	    m.tm_year + 1900,
+	    m.tm_mon + 1,
+	    m.tm_mday,
+	    m.tm_hour,
+	    m.tm_min);
 }
 
 static int
@@ -110,11 +110,13 @@ find_repos(struct repos *rsp, const char *dir, int depth)
 		eprintf("opendir %s:", dir);
 
 	while ((d = readdir(dp))) {
-		if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0)
+		if (strcmp(d->d_name, ".") == 0 ||
+		    strcmp(d->d_name, "..") == 0)
 			continue;
 
 		if (valid_git_dir(dir)) {
-			rsp->repos = reallocarray(rsp->repos, ++rsp->n, sizeof(struct repo));
+			rsp->repos = reallocarray(rsp->repos, ++rsp->n,
+			    sizeof(struct repo));
 			if (rsp->repos == NULL)
 				eprintf("reallocarray:");
 			strlcpy(rsp->repos[rsp->n - 1].path, dir, PATH_MAX);
@@ -167,13 +169,13 @@ static void
 render_header(const char *title)
 {
 	printf("<!doctype html>\n"
-			"<html>\n"
-			"<head>\n"
-			"<title>%s</title>\n"
-			"<link href=/style.css rel=stylesheet>\n"
-			"</head>\n"
-			"<body>\n"
-			"<h1>%s</h1>\n", title, title);
+	    "<html>\n"
+	    "<head>\n"
+	    "<title>%s</title>\n"
+	    "<link href=/style.css rel=stylesheet>\n"
+	    "</head>\n"
+	    "<body>\n"
+	    "<h1>%s</h1>\n", title, title);
 }
 
 static void
@@ -192,11 +194,11 @@ render_repo(const struct repo *repo)
 		eprintf("basename:");
 
 	printf("<tr>\n"
-			"<td>%s</td>\n"
-			"<td>", b);
+	    "<td>%s</td>\n"
+	    "<td>", b);
 	printgt(repo->age);
 	puts("</td>\n"
-			"</tr>\n");
+	    "</tr>\n");
 
 	free(p);
 }
@@ -219,9 +221,10 @@ render_index(void)
 	http_headers();
 	render_header("Repositories");
 	puts("<table>\n"
-			"<tr>\n"
-			"<th>&nbsp;</th>\n"
-			"<th>Latest commit</th>");
+	    "<tr>\n"
+	    "<th>&nbsp;</th>\n"
+	    "<th>Latest commit</th>");
+
 	find_repos(&rsp, SCAN_DIR, 0);
 	parse_repos(&rsp);
 	qsort(rsp.repos, rsp.n, sizeof(*rsp.repos), repocmp);
