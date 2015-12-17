@@ -201,6 +201,13 @@ render_repo(const struct repo *repo)
 	free(p);
 }
 
+static int
+repocmp(const void *va, const void *vb)
+{
+	const struct repo *a = va, *b = vb;
+	return b->time - a->time;
+}
+
 static void
 render_index(void)
 {
@@ -217,6 +224,7 @@ render_index(void)
 			"<th>Latest commit</th>");
 	find_repos(&rsp, SCAN_DIR, 0);
 	parse_repos(&rsp);
+	qsort(rsp.repos, rsp.n, sizeof(*rsp.repos), repocmp);
 	for (i = 0; i < rsp.n; i++)
 		render_repo(&rsp.repos[i]);
 
