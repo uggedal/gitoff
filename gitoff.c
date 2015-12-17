@@ -72,7 +72,7 @@ printgt(const git_time_t gt)
 			m.tm_min);
 }
 
-int
+static int
 has_file(const char *base, const char *file, int isdir)
 {
 	struct stat st;
@@ -87,7 +87,7 @@ has_file(const char *base, const char *file, int isdir)
 	return isdir ? S_ISDIR(st.st_mode) : S_ISREG(st.st_mode);
 }
 
-int
+static int
 valid_git_dir(const char *dir)
 {
 	return has_file(dir, "objects", 1) &&
@@ -95,7 +95,7 @@ valid_git_dir(const char *dir)
 		has_file(dir, "refs", 1);
 }
 
-void
+static void
 find_repos(struct repos *rsp, const char *dir, int depth)
 {
 	DIR *dp;
@@ -129,7 +129,7 @@ find_repos(struct repos *rsp, const char *dir, int depth)
 	closedir(dp);
 }
 
-void
+static void
 parse_repos(struct repos *rsp)
 {
 	git_repository *r;
@@ -155,7 +155,7 @@ parse_repos(struct repos *rsp)
 	}
 }
 
-void
+static void
 http_headers()
 {
 	printf("Content-Type: text/html; charset=UTF-8\n\n");
@@ -163,7 +163,7 @@ http_headers()
 	/* TODO: cache headers */
 }
 
-void
+static void
 render_header(const char *title)
 {
 	printf("<!doctype html>\n"
@@ -176,13 +176,13 @@ render_header(const char *title)
 			"<h1>%s</h1>\n", title, title);
 }
 
-void
+static void
 render_footer()
 {
 	puts("</body></html>");
 }
 
-void
+static void
 render_repo(const struct repo *repo)
 {
 	char *p, *b;
@@ -201,7 +201,7 @@ render_repo(const struct repo *repo)
 	free(p);
 }
 
-void
+static void
 render_index(void)
 {
 	size_t i;
