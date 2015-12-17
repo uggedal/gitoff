@@ -53,11 +53,8 @@ void
 printgt(const git_time_t gt)
 {
 	struct tm m;
-	time_t t;
 
-	t = (time_t) gt;
-
-	if (gmtime_r(&t, &m) == NULL)
+	if (gmtime_r(&gt, &m) == NULL)
 		return;
 
 	printf("%.4u-%02u-%02u %02u:%02u",
