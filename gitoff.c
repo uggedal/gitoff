@@ -31,7 +31,7 @@ eprintf(const char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 
-	if (fmt[0] && fmt[strlen(fmt)-1] == ':') {
+	if (fmt[0] && fmt[strlen(fmt) - 1] == ':') {
 		fputc(' ', stderr);
 		perror(NULL);
 	}
@@ -75,8 +75,8 @@ printgt(const git_time_t gt)
 static int
 has_file(const char *base, const char *file, int isdir)
 {
-	struct stat st;
 	char buf[PATH_MAX];
+	struct stat st;
 
 	snprintf(buf, sizeof(buf), "%s/%s", base, file);
 	if (stat(buf, &st) < 0) {
@@ -91,8 +91,8 @@ static int
 valid_git_dir(const char *dir)
 {
 	return has_file(dir, "objects", 1) &&
-		has_file(dir, "HEAD", 0) &&
-		has_file(dir, "refs", 1);
+	    has_file(dir, "HEAD", 0) &&
+	    has_file(dir, "refs", 1);
 }
 
 static void
