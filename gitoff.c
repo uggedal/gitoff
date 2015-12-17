@@ -218,20 +218,23 @@ render_index(void)
 	rsp.n = 0;
 	rsp.repos = NULL;
 
-	http_headers();
-	render_header("Repositories");
-	puts("<table>\n"
-	    "<tr>\n"
-	    "<th>&nbsp;</th>\n"
-	    "<th>Latest commit</th>");
-
 	find_repos(&rsp, SCAN_DIR, 0);
 	parse_repos(&rsp);
 	qsort(rsp.repos, rsp.n, sizeof(*rsp.repos), repocmp);
-	for (i = 0; i < rsp.n; i++)
-		render_repo(&rsp.repos[i]);
 
-	puts("</table>");
+	http_headers();
+	render_header("Repositories");
+	if (rsp.n > 0) {
+		puts("<table>\n"
+		    "<tr>\n"
+		    "<th>&nbsp;</th>\n"
+		    "<th>Latest commit</th>");
+		for (i = 0; i < rsp.n; i++)
+			render_repo(&rsp.repos[i]);
+		puts("</table>");
+	} else {
+		puts("<p>No repositories in "SCAN_DIR"</p>");
+	}
 	render_footer();
 }
 
