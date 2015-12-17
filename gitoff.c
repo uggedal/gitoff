@@ -14,7 +14,7 @@
 
 struct repo {
 	char path[PATH_MAX];
-	git_time_t time;
+	git_time_t age;
 };
 
 struct repos {
@@ -148,7 +148,7 @@ parse_repos(struct repos *rsp)
 		if (git_commit_lookup(&ci, r, git_object_id(obj)))
 			geprintf("commit lookup %s:", git_object_id(obj));
 
-		rp->time = git_commit_time(ci);
+		rp->age = git_commit_time(ci);
 
 		git_object_free(obj);
 		git_repository_free(r);
@@ -194,7 +194,7 @@ render_repo(const struct repo *repo)
 	printf("<tr>\n"
 			"<td>%s</td>\n"
 			"<td>", b);
-	printgt(repo->time);
+	printgt(repo->age);
 	puts("</td>\n"
 			"</tr>\n");
 
@@ -205,7 +205,7 @@ static int
 repocmp(const void *va, const void *vb)
 {
 	const struct repo *a = va, *b = vb;
-	return b->time - a->time;
+	return b->age - a->age;
 }
 
 static void
