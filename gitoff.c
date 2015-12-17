@@ -12,8 +12,13 @@
 
 #include <git2.h>
 
-static char repos[MAX_REPOS][PATH_MAX];
-static int repo_index = 0;
+struct repo {
+	char path[PATH_MAX];
+	git_time_t last_update;
+};
+
+static struct repo *repos = NULL;
+static size_t repos_n = 0;
 
 void
 eprintf(const char *fmt, ...)
@@ -88,16 +93,15 @@ valid_git_dir(const char *dir)
 		has_file(dir, "refs", 1);
 }
 
-int
+void
 find_repos(const char *dir, int depth)
 {
-	int ret = 0;
 	DIR *dp;
 	struct dirent *d;
 	char buf[PATH_MAX];
 
 	if (depth >= 3)
-		return ret;
+		return;
 	depth++;
 
 	if (!(dp = opendir(dir)))
@@ -108,7 +112,8 @@ find_repos(const char *dir, int depth)
 			continue;
 
 		if (valid_git_dir(dir)) {
-			strlcpy(repos[repo_index++], dir, sizeof(repos[0]));
+			repos = reallocarray(repos, ++repos_n, sizeof(*repos));
+			strlcpy(repos[repos_n-1].path, dir, PATH_MAX);
 			break;
 		}
 
@@ -118,7 +123,32 @@ find_repos(const char *dir, int depth)
 	}
 
 	closedir(dp);
-	return ret;
+}
+
+void
+parse_repos()
+{
+	git_repository *r;
+	git_object *obj;
+	git_commit *ci;
+	size_t i;
+	struct repo *repo;
+
+	for (i = 0; i < repos_n; i++) {
+		repo = &repos[i];
+
+		if (git_repository_open_bare(&r, repo->path))
+			geprintf("repo open %s:", repo->path);
+		if (git_revparse_single(&obj, r, "HEAD"))
+			geprintf("revparse HEAD %s:", repo->path);
+		if (git_commit_lookup(&ci, r, git_object_id(obj)))
+			geprintf("commit lookup %s:", git_object_id(obj));
+
+		repo->last_update = git_commit_time(ci);
+
+		git_object_free(obj);
+		git_repository_free(r);
+	}
 }
 
 void
@@ -148,46 +178,29 @@ render_footer()
 	puts("</body></html>");
 }
 
-int
-render_repo(const char *path)
+void
+render_repo(const struct repo *repo)
 {
 	char *p, *b;
-	git_repository *r;
-	git_object *obj;
-	git_commit *ci;
-
-	if (!(p = strdup(path)))
+	if (!(p = strdup(repo->path)))
 		eprintf("strdup:");
 	if (!(b = basename(p)))
 		eprintf("basename:");
 
-	if (git_repository_open_bare(&r, path))
-		geprintf("repo open %s:", path);
-
-	if (git_revparse_single(&obj, r, "HEAD"))
-		geprintf("revparse HEAD %s:", path);
-
-	if (git_commit_lookup(&ci, r, git_object_id(obj)))
-		geprintf("commit lookup %s:", git_object_id(obj));
-
 	printf("<tr>\n"
 			"<td>%s</td>\n"
 			"<td>", b);
-	printgt(git_commit_time(ci));
+	printgt(repo->last_update);
 	puts("</td>\n"
 			"</tr>\n");
 
 	free(p);
-	git_object_free(obj);
-	git_repository_free(r);
-	return 0;
 }
 
-int
+void
 render_index(void)
 {
-	int ret = 0;
-	int i;
+	size_t i;
 
 	http_headers();
 	render_header("Repositories");
@@ -195,23 +208,21 @@ render_index(void)
 			"<tr>\n"
 			"<th>&nbsp;</th>\n"
 			"<th>Latest commit</th>");
-	ret = find_repos(SCAN_DIR, 0);
-	for (i = 0; i < repo_index; i++)
-		render_repo(repos[i]);
+	find_repos(SCAN_DIR, 0);
+	parse_repos();
+	for (i = 0; i < repos_n; i++)
+		render_repo(&repos[i]);
 
 	puts("</table>");
 	render_footer();
-	return ret;
 }
 
 int
 main(int argc, char *argv[])
 {
-	int ret = 0;
-
 	git_libgit2_init();
-	ret = render_index();
+	render_index();
 	git_libgit2_shutdown();
 
-	return ret;
+	return 0;
 }
