@@ -185,22 +185,28 @@ render_footer()
 }
 
 static void
-render_repo(const struct repo *repo)
-{
-	char *p, *b;
-	if (!(p = strdup(repo->path)))
-		eprintf("strdup:");
-	if (!(b = basename(p)))
-		eprintf("basename:");
+print_repo_name(const struct repo *rp) {
+	char *name;
 
-	printf("<tr>\n"
-	    "<td>%s</td>\n"
-	    "<td>", b);
-	printgt(repo->age);
+	if (strncmp(rp->path, SCAN_DIR"/", strlen(SCAN_DIR"/")) != 0)
+		eprintf("repo path not subdir of SCAN_DIR\n");
+
+	name = rp->path;
+	name += strlen(SCAN_DIR"/");
+	puts(name);
+}
+
+static void
+render_repo(const struct repo *rp)
+{
+	puts("<tr>\n"
+	    "<td>");
+	print_repo_name(rp);
+	puts("</td>\n"
+	    "<td>");
+	printgt(rp->age);
 	puts("</td>\n"
 	    "</tr>\n");
-
-	free(p);
 }
 
 static int
