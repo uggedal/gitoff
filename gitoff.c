@@ -283,6 +283,9 @@ main(int argc, char *argv[])
 	struct repos rsp;
 	size_t i, n;
 
+	(void) argc;
+	(void) argv;
+
 	rsp.n = 0;
 	rsp.repos = NULL;
 
