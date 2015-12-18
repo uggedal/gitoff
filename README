@@ -3,9 +3,51 @@ gitoff
 
 Tiny git www interface.
 
+Currently gitoff is developed for OpenBSD and designed
+to be served with httpd(8) and slowcgi(8) in a chroot
+under /var/www.
+
 Building
 --------
 
-In order to build gitoff you need the libgit2 library and headers.
+Start with building a static libgit2 archive parallel
+to this directory:
 
-Adjust config.mk to your system and run make.
+	cd ..
+	ftp -o- https://github.com/libgit2/libgit2/archive/v0.23.4.tar.gz |
+	    tar xzf -
+	mv libgit2-* libgit2
+	mkdir libgit2/build
+	cd libgit2/build
+	cmake .. -DCURL=OFF -DUSE_OPENSSL=OFF \
+	    -DUSE_SSH=OFF -DBUILD_SHARED_LIBS=OFF
+	cmake --build .
+
+Then simply compile gitoff:
+
+	make
+
+Installation
+------------
+
+Make git repositories available under /var/www/git.
+
+Configure httpd.conf(5) as follows:
+
+	server "git.example.com" {
+		listen on * port 80
+
+		location "/gitoff.*" {
+			root "/gitoff"
+			no fastcgi
+		}
+
+		root "/cgi-bin/gitoff"
+		fastcgi socket "/run/slowcgi.sock"
+	}
+
+Copy gitoff and style into place:
+
+	doas cp gitoff /var/www/cgi-bin
+	doas mkdir -p /var/www/gitoff
+	doas cp gitoff.css /var/www/gitoff
