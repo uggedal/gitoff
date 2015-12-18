@@ -228,7 +228,7 @@ static void
 render_notfound(void)
 {
 	http_headers("404 Not Found");
-	render_header("Not found");
+	render_header("404 Not Found");
 	render_footer();
 }
 
