@@ -186,7 +186,7 @@ render_footer()
 
 static void
 print_repo_name(const struct repo *rp) {
-	char *name;
+	const char *name;
 
 	if (strncmp(rp->path, SCAN_DIR"/", strlen(SCAN_DIR"/")) != 0)
 		eprintf("repo path not subdir of SCAN_DIR\n");
