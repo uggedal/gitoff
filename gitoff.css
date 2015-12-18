@@ -3,9 +3,11 @@ body {
 }
 
 h1 {
-	padding-bottom: 1em;
-	border-bottom: 1px dashed;
+	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAiUlEQVRYhe3V2wqAMAwD0P3/T+uraNrGrIVtNDB0F7cDFh2j09kwF2jeeAnAAqHxBpQArJYG8A75C5CK0lusbJwOYNemAN4PLwkorYHtAVKOAKC1EiCaiwASYgmAVcGzn2gZEQGiuanDvaIsCfMzet6z/RIAujL7hACmsNA17XWxAAQaRr/T+eQGpYDjHSqoGasAAAAASUVORK5CYII=) no-repeat;
+	border-bottom: 1px dashed #999;
 	font-size: 1.5em;
+	padding: 0 0 .25em 42px;
+	line-height: 32px;
 }
 
 th {
