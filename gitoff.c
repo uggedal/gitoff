@@ -14,6 +14,7 @@
 
 struct repo {
 	char path[PATH_MAX];
+	char name[64];
 	git_time_t age;
 };
 
@@ -96,11 +97,23 @@ valid_git_dir(const char *dir)
 }
 
 static void
+set_repo_name(const struct repo *rp) {
+	const char *p;
+
+	if (strncmp(rp->path, SCAN_DIR"/", strlen(SCAN_DIR"/")) != 0)
+		eprintf("repo path not subdir of SCAN_DIR\n");
+
+	p = rp->path + strlen(SCAN_DIR"/");
+	strlcpy((char *)rp->name, p, sizeof(rp->name));
+}
+
+static void
 find_repos(struct repos *rsp, const char *dir, int depth)
 {
 	DIR *dp;
 	struct dirent *d;
 	char buf[PATH_MAX];
+	struct repo *rp;
 
 	if (depth >= 3)
 		return;
@@ -119,7 +132,9 @@ find_repos(struct repos *rsp, const char *dir, int depth)
 			    sizeof(struct repo));
 			if (rsp->repos == NULL)
 				eprintf("reallocarray:");
-			strlcpy(rsp->repos[rsp->n - 1].path, dir, PATH_MAX);
+			rp = &rsp->repos[rsp->n - 1];
+			strlcpy(rp->path, dir, PATH_MAX);
+			set_repo_name(rp);
 			break;
 		}
 
@@ -186,28 +201,13 @@ render_footer()
 }
 
 static void
-print_repo_name(const struct repo *rp) {
-	const char *name;
-
-	if (strncmp(rp->path, SCAN_DIR"/", strlen(SCAN_DIR"/")) != 0)
-		eprintf("repo path not subdir of SCAN_DIR\n");
-
-	name = rp->path;
-	name += strlen(SCAN_DIR"/");
-	printf("%s", name);
-}
-
-static void
 render_repo(const struct repo *rp)
 {
 	printf("<tr>\n"
 	    "<td>\n"
-	    "<a href=/");
-	print_repo_name(rp);
-	puts(">");
-	print_repo_name(rp);
-	puts("\n</a>"
-	    "</td>\n"
+	    "<a href=/%s>%s</a>",
+	    rp->name, rp->name);
+	puts("</td>\n"
 	    "<td>");
 	printgt(rp->age);
 	puts("</td>\n"
