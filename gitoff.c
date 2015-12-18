@@ -147,29 +147,32 @@ find_repos(struct repos *rsp, const char *dir, int depth)
 }
 
 static void
-parse_repos(struct repos *rsp)
+parse_repo(struct repo *rp)
 {
 	git_repository *r;
 	git_object *obj;
 	git_commit *ci;
+
+	if (git_repository_open_bare(&r, rp->path))
+		geprintf("repo open %s:", rp->path);
+	if (git_revparse_single(&obj, r, "HEAD"))
+		geprintf("revparse HEAD %s:", rp->path);
+	if (git_commit_lookup(&ci, r, git_object_id(obj)))
+		geprintf("commit lookup %s:", git_object_id(obj));
+
+	rp->age = git_commit_time(ci);
+
+	git_object_free(obj);
+	git_repository_free(r);
+}
+
+static void
+parse_repos(const struct repos *rsp)
+{
 	size_t i;
-	struct repo *rp;
 
-	for (i = 0; i < rsp->n; i++) {
-		rp = &rsp->repos[i];
-
-		if (git_repository_open_bare(&r, rp->path))
-			geprintf("repo open %s:", rp->path);
-		if (git_revparse_single(&obj, r, "HEAD"))
-			geprintf("revparse HEAD %s:", rp->path);
-		if (git_commit_lookup(&ci, r, git_object_id(obj)))
-			geprintf("commit lookup %s:", git_object_id(obj));
-
-		rp->age = git_commit_time(ci);
-
-		git_object_free(obj);
-		git_repository_free(r);
-	}
+	for (i = 0; i < rsp->n; i++)
+		parse_repo(&rsp->repos[i]);
 }
 
 static void
@@ -222,35 +225,6 @@ repocmp(const void *va, const void *vb)
 }
 
 static void
-render_index(void)
-{
-	size_t i;
-	struct repos rsp;
-	rsp.n = 0;
-	rsp.repos = NULL;
-
-	find_repos(&rsp, SCAN_DIR, 0);
-	parse_repos(&rsp);
-	qsort(rsp.repos, rsp.n, sizeof(*rsp.repos), repocmp);
-
-	http_headers("200 Success");
-	render_header("Repositories");
-	if (rsp.n > 0) {
-		puts("<table>\n"
-		    "<tr>\n"
-		    "<th>&nbsp;</th>\n"
-		    "<th>Latest commit</th>");
-		for (i = 0; i < rsp.n; i++)
-			render_repo(&rsp.repos[i]);
-		puts("</table>");
-	} else {
-		puts("<p>No repositories in "SCAN_DIR"</p>");
-	}
-	free(rsp.repos);
-	render_footer();
-}
-
-static void
 render_notfound(void)
 {
 	http_headers("404 Not Found");
@@ -258,18 +232,89 @@ render_notfound(void)
 	render_footer();
 }
 
+static void
+render_index(const struct repos *rsp)
+{
+	size_t i;
+
+	parse_repos(rsp);
+	qsort(rsp->repos, rsp->n, sizeof(*rsp->repos), repocmp);
+
+	http_headers("200 Success");
+	render_header("Repositories");
+	if (rsp->n > 0) {
+		puts("<table>\n"
+		    "<tr>\n"
+		    "<th>&nbsp;</th>\n"
+		    "<th>Latest commit</th>");
+		for (i = 0; i < rsp->n; i++)
+			render_repo(&rsp->repos[i]);
+		puts("</table>");
+	} else {
+		puts("<p>No repositories in "SCAN_DIR"</p>");
+	}
+	render_footer();
+}
+
+static void
+render_summary(const struct repo *rp)
+{
+	http_headers("200 Success");
+	render_header(rp->name);
+
+	render_footer();
+}
+
+static void
+route_repo(const char *url, struct repo *rp, size_t n)
+{
+	parse_repo(rp);
+
+	if (url[n + 1] == '\0' || url[n + 2] == '\0')
+		render_summary(rp);
+	else
+		render_notfound();
+}
 
 int
 main(int argc, char *argv[])
 {
-	const char *path = getenv("PATH_INFO");
+	char *url;
+	struct repos rsp;
+	size_t i, n;
+
+	rsp.n = 0;
+	rsp.repos = NULL;
+
 	git_libgit2_init();
 
-	if (!path || path[0] == '\0' || (path[0] == '/' && path[1] == '\0'))
-		render_index();
-	else
-		render_notfound();
+	url = getenv("PATH_INFO");
 
+	if (!url || url[0] == '\0' || url[0] != '/') {
+		render_notfound();
+		goto cleanup;
+	}
+
+	find_repos(&rsp, SCAN_DIR, 0);
+
+	if (url[1] == '\0') {
+		render_index(&rsp);
+		goto cleanup;
+	}
+
+	for (i = 0; i < rsp.n; i++) {
+		n = strlen(rsp.repos[i].name);
+		if (!strncmp(rsp.repos[i].name, url + 1, n) &&
+		    (url[n + 1] == '\0' || url[n + 1] == '/')) {
+			route_repo(url, &rsp.repos[i], n);
+			goto cleanup;
+		}
+	}
+	render_notfound();
+
+cleanup:
+	if (rsp.repos != NULL)
+		free(rsp.repos);
 	git_libgit2_shutdown();
 
 	return 0;
