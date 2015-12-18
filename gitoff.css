@@ -1,5 +1,5 @@
 body {
-	font-family: sans-serif;
+	font-family: monospace;
 }
 
 h1 {
@@ -14,7 +14,6 @@ th {
 	text-align: left;
 }
 td, th {
-	font-family: monospace;
 	padding-right: 1em;
 }
 
