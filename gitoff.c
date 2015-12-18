@@ -206,15 +206,15 @@ render_footer()
 static void
 render_repo(const struct repo *rp)
 {
-	printf("<tr>\n"
+	puts("<tr>\n"
+	    "<td>");
+	printgt(rp->age);
+	printf("</td>\n"
 	    "<td>\n"
 	    "<a href=/%s>%s</a>",
 	    rp->name, rp->name);
 	puts("</td>\n"
-	    "<td>");
-	printgt(rp->age);
-	puts("</td>\n"
-	    "</tr>\n");
+	    "</tr>");
 }
 
 static int
@@ -245,8 +245,8 @@ render_index(const struct repos *rsp)
 	if (rsp->n > 0) {
 		puts("<table>\n"
 		    "<tr>\n"
-		    "<th>&nbsp;</th>\n"
-		    "<th>Latest commit</th>");
+		    "<th>Latest commit</th>\n"
+		    "<th>Name</th>");
 		for (i = 0; i < rsp->n; i++)
 			render_repo(&rsp->repos[i]);
 		puts("</table>");

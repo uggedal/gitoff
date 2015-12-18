@@ -10,11 +10,11 @@ h1 {
 
 th {
 	color: #666;
-	font-size: .75em;
 	font-weight: normal;
 	text-align: left;
 }
 td, th {
+	font-family: monospace;
 	padding-right: 1em;
 }
 
