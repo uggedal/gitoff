@@ -193,16 +193,20 @@ print_repo_name(const struct repo *rp) {
 
 	name = rp->path;
 	name += strlen(SCAN_DIR"/");
-	puts(name);
+	printf("%s", name);
 }
 
 static void
 render_repo(const struct repo *rp)
 {
-	puts("<tr>\n"
-	    "<td>");
+	printf("<tr>\n"
+	    "<td>\n"
+	    "<a href=/");
 	print_repo_name(rp);
-	puts("</td>\n"
+	puts(">");
+	print_repo_name(rp);
+	puts("\n</a>"
+	    "</td>\n"
 	    "<td>");
 	printgt(rp->age);
 	puts("</td>\n"
