@@ -158,9 +158,10 @@ parse_repos(struct repos *rsp)
 }
 
 static void
-http_headers()
+http_headers(const char *status)
 {
-	printf("Content-Type: text/html; charset=UTF-8\n\n");
+	printf("Content-Type: text/html; charset=UTF-8\n"
+	    "Status: %s\n\n", status);
 	/* TODO: abort for HEAD requests */
 	/* TODO: cache headers */
 }
@@ -232,7 +233,7 @@ render_index(void)
 	parse_repos(&rsp);
 	qsort(rsp.repos, rsp.n, sizeof(*rsp.repos), repocmp);
 
-	http_headers();
+	http_headers("200 Success");
 	render_header("Repositories");
 	if (rsp.n > 0) {
 		puts("<table>\n"
@@ -249,11 +250,26 @@ render_index(void)
 	render_footer();
 }
 
+static void
+render_notfound(void)
+{
+	http_headers("404 Not Found");
+	render_header("Not found");
+	render_footer();
+}
+
+
 int
 main(int argc, char *argv[])
 {
+	const char *path = getenv("PATH_INFO");
 	git_libgit2_init();
-	render_index();
+
+	if (!path || path[0] == '\0' || (path[0] == '/' && path[1] == '\0'))
+		render_index();
+	else
+		render_notfound();
+
 	git_libgit2_shutdown();
 
 	return 0;
