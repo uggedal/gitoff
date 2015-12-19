@@ -12,9 +12,11 @@
 
 #include <git2.h>
 
+#define REPO_NAME_MAX 64
+
 struct repo {
 	char path[PATH_MAX];
-	char name[64];
+	char name[REPO_NAME_MAX];
 	git_time_t age;
 };
 
@@ -298,7 +300,7 @@ render_refs(const struct repo *rp)
 static void
 render_summary(const struct repo *rp)
 {
-	char h[64 + 22 + 1];
+	char h[REPO_NAME_MAX + 22 + 1];
 
 	snprintf(h, sizeof(h), "<a href=/>Index</a> / %s", rp->name);
 
