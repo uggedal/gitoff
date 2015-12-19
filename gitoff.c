@@ -185,7 +185,7 @@ http_headers(const char *status)
 }
 
 static void
-render_header(const char *title)
+render_header(const char *title, const char *heading)
 {
 	printf("<!doctype html>\n"
 	    "<html>\n"
@@ -194,7 +194,8 @@ render_header(const char *title)
 	    "<link href=/gitoff.css rel=stylesheet>\n"
 	    "</head>\n"
 	    "<body>\n"
-	    "<h1>%s</h1>\n", title, title);
+	    "<h1>%s</h1>\n",
+	    title, heading ? heading : title);
 }
 
 static void
@@ -228,7 +229,7 @@ static void
 render_notfound(void)
 {
 	http_headers("404 Not Found");
-	render_header("404 Not Found");
+	render_header("404 Not Found", NULL);
 	render_footer();
 }
 
@@ -241,7 +242,7 @@ render_index(const struct repos *rsp)
 	qsort(rsp->repos, rsp->n, sizeof(*rsp->repos), repocmp);
 
 	http_headers("200 Success");
-	render_header("Repositories");
+	render_header("Repositories", NULL);
 	if (rsp->n > 0) {
 		puts("<table>\n"
 		    "<tr>\n"
@@ -298,7 +299,7 @@ static void
 render_summary(const struct repo *rp)
 {
 	http_headers("200 Success");
-	render_header(rp->name);
+	render_header(rp->name, NULL);
 
 	printf("<h2>\n"
 	    "<a href=/%s/l>Log</a>\n"
