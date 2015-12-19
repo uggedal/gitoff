@@ -257,10 +257,61 @@ render_index(const struct repos *rsp)
 }
 
 static void
+render_log(const struct repo *rp, size_t n, size_t p)
+{
+	puts("<table>\n"
+	    "<tr>\n"
+	    "<th>Date</th>\n"
+	    "<th>Id</th>\n"
+	    "<th>Subject</th>"
+	    "</tr>");
+	puts("</table>");
+}
+
+render_tree(const struct repo *rp, const char *path)
+{
+	puts("<table>\n"
+	    "<tr>\n"
+	    "<th>Name</th>\n"
+	    "<th>Size</th>\n"
+	    "</tr>");
+	puts("</table>");
+}
+
+render_refs(const struct repo *rp)
+{
+	puts("<table>\n"
+	    "<tr>\n"
+	    "<th>Branch</th>\n"
+	    "</tr>");
+	puts("</table>");
+	puts("<table>\n"
+	    "<tr>\n"
+	    "<th>Tag</th>\n"
+	    "</tr>");
+	puts("</table>");
+}
+
+static void
 render_summary(const struct repo *rp)
 {
 	http_headers("200 Success");
 	render_header(rp->name);
+
+	printf("<h2>\n"
+	    "<a href=/%s/l>Log</a>\n"
+	    "</h2>\n",
+	    rp->name);
+	render_log(rp, 3, 1);
+
+	printf("<h2>\n"
+	    "<a href=/%s/t>Tree</a>\n"
+	    "</h2>\n",
+	    rp->name);
+	render_tree(rp, "/");
+
+	puts("<h2>Refs</h2>");
+	render_refs(rp);
 
 	render_footer();
 }

@@ -10,6 +10,10 @@ h1 {
 	line-height: 32px;
 }
 
+h2 {
+	font-size: 1.25em;
+}
+
 th {
 	color: #666;
 	font-weight: normal;
