@@ -298,8 +298,12 @@ render_refs(const struct repo *rp)
 static void
 render_summary(const struct repo *rp)
 {
+	char h[64 + 22 + 1];
+
+	snprintf(h, sizeof(h), "<a href=/>Index</a> / %s", rp->name);
+
 	http_headers("200 Success");
-	render_header(rp->name, NULL);
+	render_header(rp->name, h);
 
 	printf("<h2>\n"
 	    "<a href=/%s/l>Log</a>\n"
