@@ -268,6 +268,7 @@ render_log(const struct repo *rp, size_t n, size_t p)
 	puts("</table>");
 }
 
+static void
 render_tree(const struct repo *rp, const char *path)
 {
 	puts("<table>\n"
@@ -278,6 +279,7 @@ render_tree(const struct repo *rp, const char *path)
 	puts("</table>");
 }
 
+static void
 render_refs(const struct repo *rp)
 {
 	puts("<table>\n"
