@@ -303,7 +303,7 @@ render_log_line(const struct repo *rp, const git_commit *ci)
 }
 
 static void
-render_log(const struct repo *rp, size_t n, size_t p)
+render_log_list(const struct repo *rp, size_t n, size_t p)
 {
 	git_revwalk *w;
 	git_commit *ci = NULL;
@@ -328,11 +328,26 @@ render_log(const struct repo *rp, size_t n, size_t p)
 		if (git_commit_lookup(&ci, rp->handle, &id))
 			geprintf("commit lookup %s:", rp->path);
 		render_log_line(rp, ci);
-		if (i+1 >= n)
+		if (n > 1 && i+1 >= n)
 			break;
 	}
 
 	puts("</table>");
+}
+
+static void
+render_log(const struct repo *rp)
+{
+	char h[(REPO_NAME_MAX * 2) + 42 + 1];
+
+	snprintf(h, sizeof(h), "<a href=/>Index</a> / <a href=/%s>%s</a> / log", rp->name, rp->name);
+
+	http_headers("200 Success");
+	render_header(rp->name, h);
+
+	render_log_list(rp, 0, 1); /* TODO: pagination */
+
+	render_footer();
 }
 
 static void
@@ -375,7 +390,7 @@ render_summary(const struct repo *rp)
 	    "<a href=/%s/l>Log</a>\n"
 	    "</h2>\n",
 	    rp->name);
-	render_log(rp, 3, 1);
+	render_log_list(rp, 3, 1);
 
 	printf("<h2>\n"
 	    "<a href=/%s/t>Tree</a>\n"
@@ -402,6 +417,8 @@ route_repo(const char *url, struct repo *rp)
 
 	if (url[0] == '\0' || url[1] == '\0')
 		render_summary(rp);
+	else if (url[1] == 'l' && urlsep(url + 2))
+		render_log(rp);
 	else
 		render_notfound();
 
