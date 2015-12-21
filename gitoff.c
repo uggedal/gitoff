@@ -18,7 +18,7 @@ struct repo {
 	char path[PATH_MAX];
 	char name[REPO_NAME_MAX];
 	git_time_t age;
-	git_repository *git;
+	git_repository *handle;
 };
 
 struct repos {
@@ -164,7 +164,7 @@ parse_repo(struct repo *rp)
 		geprintf("commit lookup %s:", rp->path);
 
 	rp->age = git_commit_time(ci);
-	rp->git = r;
+	rp->handle = r;
 
 	git_reference_free(ref);
 }
@@ -176,7 +176,7 @@ parse_repos(const struct repos *rsp)
 
 	for (i = 0; i < rsp->n; i++) {
 		parse_repo(&rsp->repos[i]);
-		git_repository_free(rsp->repos[i].git);
+		git_repository_free(rsp->repos[i].handle);
 	}
 }
 
@@ -338,7 +338,7 @@ route_repo(const char *url, struct repo *rp, size_t n)
 	else
 		render_notfound();
 
-	git_repository_free(rp->git);
+	git_repository_free(rp->handle);
 }
 
 int
