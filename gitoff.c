@@ -67,12 +67,23 @@ htmlesc(const char *s)
 {
 	for (; s && *s; s++) {
 		switch(*s) {
-			case '&': fputs("&amp;", stdout); break;
-			case '<': fputs("&lt;", stdout); break;
-			case '>': fputs("&gt;", stdout); break;
-			case '\"': fputs("&#34;", stdout); break;
-			case '\'': fputs("&#39;", stdout); break;
-			default: putchar(*s);
+		case '&':
+			fputs("&amp;", stdout);
+			break;
+		case '<':
+			fputs("&lt;", stdout);
+			break;
+		case '>':
+			fputs("&gt;", stdout);
+			break;
+		case '\"':
+			fputs("&#34;", stdout);
+			break;
+		case '\'':
+			fputs("&#39;", stdout);
+			break;
+		default:
+			putchar(*s);
 		}
 	}
 }
