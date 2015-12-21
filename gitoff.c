@@ -359,6 +359,8 @@ render_log_list(const struct repo *rp, size_t n, size_t p)
 			break;
 	}
 
+	git_revwalk_free(w);
+
 	puts("</table>");
 }
 
