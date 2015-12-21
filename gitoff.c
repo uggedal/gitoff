@@ -13,6 +13,7 @@
 #include <git2.h>
 
 #define REPO_NAME_MAX 64
+#define OBJ_ABBREV 7
 
 struct repo {
 	char path[PATH_MAX];
@@ -263,14 +264,58 @@ render_index(const struct repos *rsp)
 }
 
 static void
+render_log_line(const struct repo *rp, const git_commit *ci)
+{
+	char buf[GIT_OID_HEXSZ + 1];
+
+	git_oid_tostr(buf, sizeof(buf), git_commit_id(ci));
+
+	puts("<tr>\n"
+	    "<td>");
+	printgt(git_commit_time(ci));
+	printf("</td>\n"
+	    "<td>"
+	    "<a href=/%s/c/%s>%.*s</a>"
+	    "</td>"
+	    "<td>%s</td>"
+	    "</tr>",
+	    rp->name,
+	    buf,
+	    OBJ_ABBREV,
+	    buf,
+	    git_commit_message(ci)); /* TOOD: HTML esc */
+}
+
+static void
 render_log(const struct repo *rp, size_t n, size_t p)
 {
+	git_revwalk *w;
+	git_commit *ci = NULL;
+	git_oid id;
+	size_t i;
+
 	puts("<table>\n"
 	    "<tr>\n"
 	    "<th>Date</th>\n"
 	    "<th>Id</th>\n"
 	    "<th>Subject</th>"
 	    "</tr>");
+
+	if (git_revwalk_new(&w, rp->handle))
+		geprintf("revwalk new %s:", rp->path);
+	if (git_revwalk_push_head(w))
+		geprintf("revwalk new %s:", rp->path);
+
+	git_revwalk_sorting(w, GIT_SORT_TIME);
+
+	for (i = 0; !git_revwalk_next(&id, w); i++, git_commit_free(ci)) {
+		if (git_commit_lookup(&ci, rp->handle, &id))
+			geprintf("commit lookup %s:", rp->path);
+		render_log_line(rp, ci);
+		if (i+1 >= n)
+			break;
+	}
+
 	puts("</table>");
 }
 
