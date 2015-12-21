@@ -152,19 +152,19 @@ static void
 parse_repo(struct repo *rp)
 {
 	git_repository *r;
-	git_object *obj;
+	git_reference *ref;
 	git_commit *ci;
 
 	if (git_repository_open_bare(&r, rp->path))
 		geprintf("repo open %s:", rp->path);
-	if (git_revparse_single(&obj, r, "HEAD"))
-		geprintf("revparse HEAD %s:", rp->path);
-	if (git_commit_lookup(&ci, r, git_object_id(obj)))
-		geprintf("commit lookup %s:", git_object_id(obj));
+	if (git_repository_head(&ref, r))
+		geprintf("repository_head %s:", rp->path);
+	if (git_commit_lookup(&ci, r, git_reference_target(ref)))
+		geprintf("commit lookup %s:", rp->path);
 
 	rp->age = git_commit_time(ci);
 
-	git_object_free(obj);
+	git_reference_free(ref);
 	git_repository_free(r);
 }
 
