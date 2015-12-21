@@ -209,20 +209,6 @@ render_footer()
 	puts("</body></html>");
 }
 
-static void
-render_repo(const struct repo *rp)
-{
-	puts("<tr>\n"
-	    "<td>");
-	printgt(rp->age);
-	printf("</td>\n"
-	    "<td>\n"
-	    "<a href=/%s>%s</a>",
-	    rp->name, rp->name);
-	puts("</td>\n"
-	    "</tr>");
-}
-
 static int
 repocmp(const void *va, const void *vb)
 {
@@ -236,6 +222,20 @@ render_notfound(void)
 	http_headers("404 Not Found");
 	render_header("404 Not Found", NULL);
 	render_footer();
+}
+
+static void
+render_index_line(const struct repo *rp)
+{
+	puts("<tr>\n"
+	    "<td>");
+	printgt(rp->age);
+	printf("</td>\n"
+	    "<td>\n"
+	    "<a href=/%s>%s</a>",
+	    rp->name, rp->name);
+	puts("</td>\n"
+	    "</tr>");
 }
 
 static void
@@ -254,7 +254,7 @@ render_index(const struct repos *rsp)
 		    "<th>Latest commit</th>\n"
 		    "<th>Name</th>");
 		for (i = 0; i < rsp->n; i++)
-			render_repo(&rsp->repos[i]);
+			render_index_line(&rsp->repos[i]);
 		puts("</table>");
 	} else {
 		puts("<p>No repositories in "SCAN_DIR"</p>");
