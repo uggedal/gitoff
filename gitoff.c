@@ -14,6 +14,7 @@
 
 #define REPO_NAME_MAX 64
 #define OBJ_ABBREV 7
+#define TITLE_MAX 50
 
 struct repo {
 	char path[PATH_MAX];
@@ -73,6 +74,17 @@ htmlesc(const char *s)
 			case '\'': fputs("&#39;", stdout); break;
 			default: putchar(*s);
 		}
+	}
+}
+
+void
+abbrev(char *s, size_t n)
+{
+	if (strlen(s) >= n) {
+		s[n + 1] = '\0';
+		s[n] = '.';
+		s[n - 1] = '.';
+		s[n - 2] = '.';
 	}
 }
 
@@ -282,8 +294,11 @@ static void
 render_log_line(const struct repo *rp, const git_commit *ci)
 {
 	char hex[GIT_OID_HEXSZ + 1];
+	char title[TITLE_MAX + 1];
 
 	git_oid_tostr(hex, sizeof(hex), git_commit_id(ci));
+	strlcpy(title, git_commit_message(ci), sizeof(title));
+	abbrev(title, TITLE_MAX);
 
 	puts("<tr>\n"
 	    "<td>");
@@ -297,7 +312,7 @@ render_log_line(const struct repo *rp, const git_commit *ci)
 	    hex,
 	    OBJ_ABBREV,
 	    hex);
-	htmlesc(git_commit_message(ci));
+	htmlesc(title);
 	puts("</td>\n"
 	    "</tr>");
 }
