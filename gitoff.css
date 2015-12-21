@@ -22,6 +22,9 @@ th {
 td, th {
 	padding-right: 1em;
 }
+td.r {
+	text-align: right;
+}
 
 a {
 	text-decoration: none;

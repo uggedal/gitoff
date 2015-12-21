@@ -3,6 +3,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <libgen.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -379,11 +380,68 @@ render_log(const struct repo *rp)
 static void
 render_tree(const struct repo *rp, const char *path)
 {
+	git_reference *ref;
+	git_commit *ci;
+	git_tree *t;
+	const git_tree_entry *en;
+	git_object *obj;
+	size_t i, n, size;
+	char dec;
+
+	if (git_repository_head(&ref, rp->handle))
+		geprintf("repo head %s:", rp->path);
+	if (git_commit_lookup(&ci, rp->handle, git_reference_target(ref)))
+		geprintf("commit lookup %s:", rp->path);
+	if (git_commit_tree(&t, ci))
+		geprintf("commit tree %s:", rp->path);
+
+	git_commit_free(ci);
+
 	puts("<table>\n"
 	    "<tr>\n"
 	    "<th>Name</th>\n"
 	    "<th>Size</th>\n"
 	    "</tr>");
+
+	for (i = 0, n = git_tree_entrycount(t); i < n; i++) {
+		if ((en = git_tree_entry_byindex(t, i)) == NULL)
+			geprintf("tree entry byindex %s:", rp->path);
+		if (git_tree_entry_to_object(&obj, rp->handle, en))
+			geprintf("tree entry to object %s:", rp->path);
+
+		dec = '\0';
+		size = 0;
+
+		switch (git_object_type(obj)) {
+		case GIT_OBJ_TREE:
+			dec = '/';
+			break;
+		case GIT_OBJ_BLOB:
+			size = git_odb_object_size((git_odb_object *)obj);
+			break;
+		default:
+			git_object_free(obj);
+			continue;
+		}
+
+		printf("<tr>\n"
+		    "<td>\n"
+		    "<a href=/%s/t/%s>%s</a>%c\n"
+		    "</td>\n"
+		    "<td class=r>\n",
+		    rp->name,
+		    git_tree_entry_name(en),
+		    git_tree_entry_name(en),
+		    dec);
+		if (size > 0)
+			printf("%zu", size);
+		else
+			putchar('-');
+		puts("</td>\n"
+		    "</tr>");
+		git_object_free(obj);
+	}
+
 	puts("</table>");
 }
 
