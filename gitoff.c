@@ -187,7 +187,7 @@ parse_repo(struct repo *rp)
 	if (git_repository_open_bare(&r, rp->path))
 		geprintf("repo open %s:", rp->path);
 	if (git_repository_head(&ref, r))
-		geprintf("repository_head %s:", rp->path);
+		geprintf("repo head %s:", rp->path);
 	if (git_commit_lookup(&ci, r, git_reference_target(ref)))
 		geprintf("commit lookup %s:", rp->path);
 
