@@ -355,7 +355,7 @@ render_log_list(const struct repo *rp, size_t n, size_t p)
 		if (git_commit_lookup(&ci, rp->handle, &id))
 			geprintf("commit lookup %s:", rp->path);
 		render_log_line(rp, ci);
-		if (n > 1 && i+1 >= n)
+		if (i+1 >= n)
 			break;
 	}
 
@@ -374,7 +374,7 @@ render_log(const struct repo *rp)
 	http_headers("200 Success");
 	render_header(rp->name, h);
 
-	render_log_list(rp, 0, 1); /* TODO: pagination */
+	render_log_list(rp, 1000, 1); /* TODO: pagination */
 
 	render_footer();
 }
