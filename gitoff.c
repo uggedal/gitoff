@@ -263,7 +263,7 @@ render_index(const struct repos *rsp)
 	qsort(rsp->repos, rsp->n, sizeof(*rsp->repos), repocmp);
 
 	http_headers("200 Success");
-	render_header("Repositories", NULL);
+	render_header("Index", NULL);
 	if (rsp->n > 0) {
 		puts("<table>\n"
 		    "<tr>\n"
