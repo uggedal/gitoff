@@ -303,6 +303,23 @@ render_index(const struct repos *rsp)
 }
 
 static void
+render_log_link(const struct repo *rp, const git_commit *ci)
+{
+	char hex[GIT_OID_HEXSZ + 1];
+	git_oid_tostr(hex, sizeof(hex), git_commit_id(ci));
+
+	printf("<tr>\n"
+	    "<td>&nbsp;</td>\n"
+	    "<td>\n"
+	    "<a href=/%s/l/%s>Next &raquo;</a>\n"
+	    "</td>\n"
+	    "<td>&nbsp;</td>\n"
+	    "</tr>\n",
+	    rp->name,
+	    hex);
+}
+
+static void
 render_log_line(const struct repo *rp, const git_commit *ci)
 {
 	char hex[GIT_OID_HEXSZ + 1];
@@ -330,9 +347,10 @@ render_log_line(const struct repo *rp, const git_commit *ci)
 }
 
 static void
-render_log_list(const struct repo *rp, size_t n, size_t p)
+render_log_list(const struct repo *rp, size_t n, const char *rev)
 {
 	git_revwalk *w;
+	git_object *obj = NULL;
 	git_commit *ci = NULL;
 	git_oid id;
 	size_t i;
@@ -346,26 +364,39 @@ render_log_list(const struct repo *rp, size_t n, size_t p)
 
 	if (git_revwalk_new(&w, rp->handle))
 		geprintf("revwalk new %s:", rp->path);
-	if (git_revwalk_push_head(w))
-		geprintf("revwalk new %s:", rp->path);
+	if (rev && strlen(rev) > 0) {
+		if (git_revparse_single(&obj, rp->handle, rev))
+			geprintf("revparse single %s:", rp->path);
+		if (git_revwalk_push(w, git_object_id(obj)))
+			geprintf("revwalk push %s:", rp->path);
+	} else {
+		if (git_revwalk_push_head(w))
+			geprintf("revwalk push head %s:", rp->path);
+	}
 
 	git_revwalk_sorting(w, GIT_SORT_TIME);
 
 	for (i = 0; !git_revwalk_next(&id, w); i++, git_commit_free(ci)) {
 		if (git_commit_lookup(&ci, rp->handle, &id))
 			geprintf("commit lookup %s:", rp->path);
-		render_log_line(rp, ci);
-		if (i+1 >= n)
+		if (n > 0 && i >= n)
 			break;
+		else if (i == 1000) {
+			render_log_link(rp, ci);
+			break;
+		}
+		render_log_line(rp, ci);
 	}
 
 	git_revwalk_free(w);
+	if (obj)
+		git_object_free(obj);
 
 	puts("</table>");
 }
 
 static void
-render_log(const struct repo *rp)
+render_log(const struct repo *rp, const char *rev)
 {
 	char h[(REPO_NAME_MAX * 2) + 42 + 1];
 
@@ -374,7 +405,7 @@ render_log(const struct repo *rp)
 	http_headers("200 Success");
 	render_header(rp->name, h);
 
-	render_log_list(rp, 1000, 1); /* TODO: pagination */
+	render_log_list(rp, 0, rev);
 
 	render_footer();
 }
@@ -476,7 +507,7 @@ render_summary(const struct repo *rp)
 	    "<a href=/%s/l>Log</a>\n"
 	    "</h2>\n",
 	    rp->name);
-	render_log_list(rp, 3, 1);
+	render_log_list(rp, 3, NULL);
 
 	printf("<h2>\n"
 	    "<a href=/%s/t>Tree</a>\n"
@@ -499,13 +530,26 @@ urlsep(const char *s)
 static void
 route_repo(const char *url, struct repo *rp)
 {
+	char *p = NULL;
+	size_t n;
+
 	parse_repo(rp);
 
-	if (url[0] == '\0' || url[1] == '\0')
+	if (url[0] == '\0')
 		render_summary(rp);
-	else if (url[1] == 'l' && urlsep(url + 2))
-		render_log(rp);
-	else
+	else if (url[1] == 'l' && urlsep(url + 2)) {
+		n = strlen(url);
+		if (n == GIT_OID_HEXSZ + 3)
+			p = strdup(url + 3);
+		else if (n != 2) {
+			render_notfound();
+			return;
+		}
+
+		render_log(rp, p);
+		if (p)
+			free(p);
+	} else
 		render_notfound();
 
 	git_repository_free(rp->handle);
