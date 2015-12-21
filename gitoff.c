@@ -389,12 +389,18 @@ render_summary(const struct repo *rp)
 	render_footer();
 }
 
+static int
+urlsep(const char *s)
+{
+	return s[0] == '\0' || s[0] == '/';
+}
+
 static void
-route_repo(const char *url, struct repo *rp, size_t n)
+route_repo(const char *url, struct repo *rp)
 {
 	parse_repo(rp);
 
-	if (url[n + 1] == '\0' || url[n + 2] == '\0')
+	if (url[0] == '\0' || url[1] == '\0')
 		render_summary(rp);
 	else
 		render_notfound();
@@ -434,8 +440,8 @@ main(int argc, char *argv[])
 	for (i = 0; i < rsp.n; i++) {
 		n = strlen(rsp.repos[i].name);
 		if (!strncmp(rsp.repos[i].name, url + 1, n) &&
-		    (url[n + 1] == '\0' || url[n + 1] == '/')) {
-			route_repo(url, &rsp.repos[i], n);
+		    urlsep(url + n + 1)) {
+			route_repo(url + n + 1, &rsp.repos[i]);
 			goto cleanup;
 		}
 	}
