@@ -62,6 +62,21 @@ geprintf(const char *fmt, ...)
 }
 
 void
+htmlesc(const char *s)
+{
+	for (; s && *s; s++) {
+		switch(*s) {
+			case '&': fputs("&amp;", stdout); break;
+			case '<': fputs("&lt;", stdout); break;
+			case '>': fputs("&gt;", stdout); break;
+			case '\"': fputs("&#34;", stdout); break;
+			case '\'': fputs("&#39;", stdout); break;
+			default: putchar(*s);
+		}
+	}
+}
+
+void
 printgt(const git_time_t gt)
 {
 	struct tm m;
@@ -266,24 +281,25 @@ render_index(const struct repos *rsp)
 static void
 render_log_line(const struct repo *rp, const git_commit *ci)
 {
-	char buf[GIT_OID_HEXSZ + 1];
+	char hex[GIT_OID_HEXSZ + 1];
 
-	git_oid_tostr(buf, sizeof(buf), git_commit_id(ci));
+	git_oid_tostr(hex, sizeof(hex), git_commit_id(ci));
 
 	puts("<tr>\n"
 	    "<td>");
 	printgt(git_commit_time(ci));
 	printf("</td>\n"
-	    "<td>"
-	    "<a href=/%s/c/%s>%.*s</a>"
-	    "</td>"
-	    "<td>%s</td>"
-	    "</tr>",
+	    "<td>\n"
+	    "<a href=/%s/c/%s>%.*s</a>\n"
+	    "</td>\n"
+	    "<td>\n",
 	    rp->name,
-	    buf,
+	    hex,
 	    OBJ_ABBREV,
-	    buf,
-	    git_commit_message(ci)); /* TOOD: HTML esc */
+	    hex);
+	htmlesc(git_commit_message(ci));
+	puts("</td>\n"
+	    "</tr>");
 }
 
 static void
