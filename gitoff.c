@@ -208,6 +208,13 @@ parse_repos(const struct repos *rsp)
 	}
 }
 
+static int
+repocmp(const void *va, const void *vb)
+{
+	const struct repo *a = va, *b = vb;
+	return b->age - a->age;
+}
+
 static void
 http_headers(const char *status)
 {
@@ -235,13 +242,6 @@ static void
 render_footer()
 {
 	puts("</body></html>");
-}
-
-static int
-repocmp(const void *va, const void *vb)
-{
-	const struct repo *a = va, *b = vb;
-	return b->age - a->age;
 }
 
 static void
