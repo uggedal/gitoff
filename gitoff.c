@@ -414,24 +414,12 @@ render_log(const struct repo *rp, const char *rev)
 }
 
 static void
-render_tree(const struct repo *rp, const char *path)
+render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 {
-	git_reference *ref;
-	git_commit *ci;
-	git_tree *t;
-	const git_tree_entry *en;
+	const git_tree_entry *te;
 	git_object *obj;
 	size_t i, n, size;
 	char dec;
-
-	if (git_repository_head(&ref, rp->handle))
-		geprintf("repo head %s:", rp->path);
-	if (git_commit_lookup(&ci, rp->handle, git_reference_target(ref)))
-		geprintf("commit lookup %s:", rp->path);
-	if (git_commit_tree(&t, ci))
-		geprintf("commit tree %s:", rp->path);
-
-	git_commit_free(ci);
 
 	puts("<table>\n"
 	    "<tr>\n"
@@ -440,9 +428,9 @@ render_tree(const struct repo *rp, const char *path)
 	    "</tr>");
 
 	for (i = 0, n = git_tree_entrycount(t); i < n; i++) {
-		if ((en = git_tree_entry_byindex(t, i)) == NULL)
+		if ((te = git_tree_entry_byindex(t, i)) == NULL)
 			geprintf("tree entry byindex %s:", rp->path);
-		if (git_tree_entry_to_object(&obj, rp->handle, en))
+		if (git_tree_entry_to_object(&obj, rp->handle, te))
 			geprintf("tree entry to object %s:", rp->path);
 
 		dec = '\0';
@@ -462,12 +450,14 @@ render_tree(const struct repo *rp, const char *path)
 
 		printf("<tr>\n"
 		    "<td>\n"
-		    "<a href=/%s/t/%s>%s</a>%c\n"
+		    "<a href=/%s/t/%s%s%s>%s</a>%c\n"
 		    "</td>\n"
 		    "<td class=r>\n",
 		    rp->name,
-		    git_tree_entry_name(en),
-		    git_tree_entry_name(en),
+		    base,
+		    strlen(base) ? "/" : "\0",
+		    git_tree_entry_name(te),
+		    git_tree_entry_name(te),
 		    dec);
 		if (size > 0)
 			printf("%zu", size);
@@ -479,6 +469,81 @@ render_tree(const struct repo *rp, const char *path)
 	}
 
 	puts("</table>");
+}
+
+static void
+render_tree_blob(const struct repo *rp, const git_blob *b)
+{
+	return;
+}
+
+static void
+render_tree_lookup(const struct repo *rp, const char *path)
+{
+	git_reference *ref;
+	git_commit *ci;
+	git_tree *t;
+	git_tree_entry *te = NULL;
+	git_object *obj;
+
+	if (git_repository_head(&ref, rp->handle))
+		geprintf("repo head %s:", rp->path);
+	if (git_commit_lookup(&ci, rp->handle, git_reference_target(ref)))
+		geprintf("commit lookup %s:", rp->path);
+	if (git_commit_tree(&t, ci))
+		geprintf("commit tree %s:", rp->path);
+
+	git_commit_free(ci);
+
+	if (path[0] == '\0') {
+		render_tree_list(rp, (git_tree *)t, path);
+		return;
+	}
+
+	if (git_tree_entry_bypath(&te, t, path))
+		return;
+
+	if (git_tree_entry_to_object(&obj, rp->handle, te))
+		geprintf("tree entry to object %s:", rp->path);
+
+	switch (git_object_type(obj)) {
+	case GIT_OBJ_TREE:
+		render_tree_list(rp, (git_tree *)obj, path);
+		git_object_free(obj);
+		break;
+	case GIT_OBJ_BLOB:
+		render_tree_blob(rp, (git_blob *)te);
+		git_object_free(obj);
+		break;
+	default:
+		break;
+	}
+
+	git_object_free(obj);
+	git_tree_entry_free(te);
+}
+
+static void
+render_tree(const struct repo *rp, const char *path)
+{
+	char *h;
+	size_t n;
+
+	n = REPO_NAME_MAX + (strlen(rp->name) * 2) + strlen(path) + 39 + 1;
+
+	if ((h = malloc(n)) == NULL)
+		eprintf("malloc");
+
+	snprintf(h, n, "<a href=/>Index</a> / <a href=/%s>%s</a> / %s",
+	    rp->name, rp->name, path);
+
+	http_headers("200 Success");
+	render_header(rp->name, h);
+	free(h);
+
+	render_tree_lookup(rp, path);
+
+	render_footer();
 }
 
 static int
@@ -556,7 +621,7 @@ render_summary(const struct repo *rp)
 	    "<a href=/%s/t>Tree</a>\n"
 	    "</h2>\n",
 	    rp->name);
-	render_tree(rp, "/");
+	render_tree_lookup(rp, "\0");
 
 	puts("<h2>Refs</h2>");
 	render_refs(rp);
@@ -592,6 +657,11 @@ route_repo(const char *url, struct repo *rp)
 		render_log(rp, p);
 		if (p)
 			free(p);
+	} else if (url[1] == 't' && urlsep(url + 2)) {
+		if (url[3] == '\0')
+			render_tree(rp, "\0");
+		else
+			render_tree(rp, url + 3);
 	} else
 		render_notfound();
 
