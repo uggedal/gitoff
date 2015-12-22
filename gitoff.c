@@ -478,6 +478,20 @@ render_tree(const struct repo *rp, const char *path)
 	puts("</table>");
 }
 
+static int
+render_ref_item(const char *ref, void *data)
+{
+	const char *prefix = (const char *)data;
+
+	if (strncmp(ref, prefix, strlen(prefix)))
+		return 0;
+	printf("<tr>\n"
+	    "<td>%s</td>\n"
+	    "</tr>\n",
+	    ref + strlen(prefix));
+	return 0;
+}
+
 static void
 render_refs(const struct repo *rp)
 {
@@ -485,11 +499,13 @@ render_refs(const struct repo *rp)
 	    "<tr>\n"
 	    "<th>Branch</th>\n"
 	    "</tr>");
+	git_reference_foreach_name(rp->handle, &render_ref_item, "refs/heads/");
 	puts("</table>");
 	puts("<table>\n"
 	    "<tr>\n"
 	    "<th>Tag</th>\n"
 	    "</tr>");
+	git_reference_foreach_name(rp->handle, &render_ref_item, "refs/tags/");
 	puts("</table>");
 }
 
