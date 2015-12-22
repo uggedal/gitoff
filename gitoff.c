@@ -489,7 +489,7 @@ render_ref_item(git_reference *ref, void *data)
 	const git_oid *oid;
 	char hex[GIT_OID_HEXSZ + 1];
 
-	for (i =0; i < 2; i++) {
+	for (i = 0; i < 2; i++) {
 		if (strncmp(git_reference_name(ref), prefixes[i], strlen(prefixes[i])))
 			continue;
 
