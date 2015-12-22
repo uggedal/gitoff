@@ -243,8 +243,7 @@ render_header(const char *title)
 	    "<title>%s</title>\n"
 	    "<link href=/gitoff.css rel=stylesheet>\n"
 	    "</head>\n"
-	    "<body>\n",
-	    title);
+	    "<body>\n", title);
 }
 
 static void
@@ -256,7 +255,7 @@ render_title(const char *title)
 static void
 render_footer()
 {
-	puts("</body></html>");
+	puts("</body>\n</html>");
 }
 
 static void
@@ -271,15 +270,11 @@ render_notfound(void)
 static void
 render_index_line(const struct repo *rp)
 {
-	puts("<tr>\n"
-	    "<td>");
+	puts("<tr>\n<td>");
 	printgt(rp->age);
 	printf("</td>\n"
-	    "<td>\n"
-	    "<a href=/%s>%s</a>",
-	    rp->name, rp->name);
-	puts("</td>\n"
-	    "</tr>");
+	    "<td><a href=/%s>%s</a></td>\n"
+	    "</tr>\n", rp->name, rp->name);
 }
 
 static void
@@ -297,13 +292,13 @@ render_index(const struct repos *rsp)
 		puts("<table>\n"
 		    "<tr>\n"
 		    "<th>Latest commit</th>\n"
-		    "<th>Name</th>");
+		    "<th>Name</th>"
+		    "</tr>");
 		for (i = 0; i < rsp->n; i++)
 			render_index_line(&rsp->repos[i]);
 		puts("</table>");
-	} else {
-		puts("<p>No repositories in "SCAN_DIR"</p>");
-	}
+	} else
+		puts("<p>No repositories</p>");
 	render_footer();
 }
 
@@ -316,13 +311,9 @@ render_log_link(const struct repo *rp, const git_commit *ci)
 
 	printf("<tr>\n"
 	    "<td>&nbsp;</td>\n"
-	    "<td>\n"
-	    "<a href=/%s/l/%s>Next &raquo;</a>\n"
-	    "</td>\n"
+	    "<td><a href=/%s/l/%s>Next &raquo;</a></td>\n"
 	    "<td>&nbsp;</td>\n"
-	    "</tr>\n",
-	    rp->name,
-	    hex);
+	    "</tr>\n", rp->name, hex);
 }
 
 static void
@@ -335,21 +326,13 @@ render_log_line(const struct repo *rp, const git_commit *ci)
 	strlcpy(title, git_commit_message(ci), sizeof(title));
 	abbrev(title, TITLE_MAX);
 
-	puts("<tr>\n"
-	    "<td>");
+	puts("<tr>\n<td>");
 	printgt(git_commit_time(ci));
 	printf("</td>\n"
-	    "<td>\n"
-	    "<a href=/%s/c/%s>%.*s</a>\n"
-	    "</td>\n"
-	    "<td>\n",
-	    rp->name,
-	    hex,
-	    OBJ_ABBREV,
-	    hex);
+	    "<td><a href=/%s/c/%s>%.*s</a></td>\n"
+	    "<td>", rp->name, hex, OBJ_ABBREV, hex);
 	htmlesc(title);
-	puts("</td>\n"
-	    "</tr>");
+	puts("</td>\n</tr>");
 }
 
 static void
@@ -439,10 +422,7 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 		printf("<tr>\n"
 		    "<td><a href=/%s/t%s%s>..</a>/</td>\n"
 		    "<td>&nbsp;</td>\n"
-		    "</tr>\n",
-		    rp->name,
-		    strlen(parent) ? "/" : "\0",
-		    parent);
+		    "</tr>\n", rp->name, strlen(parent) ? "/" : "\0", parent);
 
 	for (i = 0, n = git_tree_entrycount(t); i < n; i++) {
 		if ((te = git_tree_entry_byindex(t, i)) == NULL)
@@ -466,22 +446,15 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 		}
 
 		printf("<tr>\n"
-		    "<td>\n"
-		    "<a href=/%s/t/%s%s%s>%s</a>%c\n"
-		    "</td>\n"
-		    "<td class=r>\n",
-		    rp->name,
-		    base,
-		    strlen(base) ? "/" : "\0",
-		    git_tree_entry_name(te),
-		    git_tree_entry_name(te),
-		    dec);
+		    "<td><a href=/%s/t/%s%s%s>%s</a>%c</td>\n"
+		    "<td class=r>\n", rp->name, base,
+		    strlen(base) ? "/" : "\0", git_tree_entry_name(te),
+		    git_tree_entry_name(te), dec);
 		if (size > 0)
 			printf("%zu", size);
 		else
 			putchar('-');
-		puts("</td>\n"
-		    "</tr>");
+		puts("</td>\n</tr>");
 		git_object_free(obj);
 	}
 
@@ -615,17 +588,11 @@ render_ref_item(git_reference *ref, void *data)
 
 		printf("<tr>\n"
 		    "<td>%s</td>\n"
-		    "<td>\n"
-		    "<a href=/%s/c/%s>%.*s</a>\n"
-		    "</td>\n"
+		    "<td><a href=/%s/c/%s>%.*s</a></td>\n"
 		    "<td>%s</td>\n"
 		    "</tr>\n",
-		    git_reference_name(ref) + strlen(prefixes[i]),
-		    rp->name,
-		    hex,
-		    OBJ_ABBREV,
-		    hex,
-		    i == 0 ? "Branch" : "Tag");
+		    git_reference_name(ref) + strlen(prefixes[i]), rp->name,
+		    hex, OBJ_ABBREV, hex, i == 0 ? "Branch" : "Tag");
 
 		if (res)
 			git_reference_free(res);
@@ -653,16 +620,10 @@ render_summary(const struct repo *rp)
 	render_header(rp->name);
 	printf("<h1><a href=/>Index</a> / %s</h1>\n", rp->name);
 
-	printf("<h2>\n"
-	    "<a href=/%s/l>Log</a>\n"
-	    "</h2>\n",
-	    rp->name);
+	printf("<h2><a href=/%s/l>Log</a></h2>\n", rp->name);
 	render_log_list(rp, 3, NULL);
 
-	printf("<h2>\n"
-	    "<a href=/%s/t>Tree</a>\n"
-	    "</h2>\n",
-	    rp->name);
+	printf("<h2><a href=/%s/t>Tree</a></h2>\n", rp->name);
 	render_tree_lookup(rp, "\0");
 
 	puts("<h2>Refs</h2>");
