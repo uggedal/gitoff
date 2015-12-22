@@ -500,8 +500,10 @@ render_tree_lookup(const struct repo *rp, const char *path)
 		return;
 	}
 
-	if (git_tree_entry_bypath(&te, t, path))
+	if (git_tree_entry_bypath(&te, t, path)) {
+		puts("<p>Not found</p>");
 		return;
+	}
 
 	if (git_tree_entry_to_object(&obj, rp->handle, te))
 		geprintf("tree entry to object %s:", rp->path);
