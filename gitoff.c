@@ -417,6 +417,7 @@ render_log(const struct repo *rp, const char *rev)
 static void
 render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 {
+	char *parent;
 	const git_tree_entry *te;
 	git_object *obj;
 	size_t i, n, size;
@@ -427,6 +428,23 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 	    "<th>Name</th>\n"
 	    "<th>Size</th>\n"
 	    "</tr>");
+
+	if (!(parent = strdup(base)))
+		eprintf("strdup:");
+	if (!(parent = dirname(parent)))
+		eprintf("dirname:");
+
+	if (parent[0] == '.' && parent[1] == '\0')
+		parent[0] = '\0';
+
+	if (base[0] != '\0')
+		printf("<tr>\n"
+		    "<td><a href=/%s/t%s%s>..</a>/</td>\n"
+		    "<td>&nbsp;</td>\n"
+		    "</tr>\n",
+		    rp->name,
+		    strlen(parent) ? "/" : "\0",
+		    parent);
 
 	for (i = 0, n = git_tree_entrycount(t); i < n; i++) {
 		if ((te = git_tree_entry_byindex(t, i)) == NULL)
