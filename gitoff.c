@@ -634,6 +634,18 @@ render_summary(const struct repo *rp)
 	render_footer();
 }
 
+static void
+render_commit(const struct repo *rp, const char *rev)
+{
+	http_headers("200 Success");
+	render_header(rp->name);
+	printf("<h1><a href=/>Index</a> / %s / ", rp->name);
+	htmlesc(rev);
+	puts("</h1>");
+
+	render_footer();
+}
+
 static int
 urlsep(const char *s)
 {
@@ -658,6 +670,8 @@ route_repo(const char *url, struct repo *rp)
 		render_log(rp, p + 3);
 	else if (p[1] == 't' && urlsep(p + 2))
 		render_tree(rp, p + 3);
+	else if (p[1] == 'c' && p[2] == '/')
+		render_commit(rp, p + 3);
 	else
 		render_notfound();
 
