@@ -558,8 +558,10 @@ render_tree(const struct repo *rp, const char *path)
 {
 	http_headers("200 Success");
 	render_header(rp->name);
-	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / %s</h1>\n",
-	    rp->name, rp->name, path);
+	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / ",
+	    rp->name, rp->name);
+	htmlesc(path);
+	puts("</h1>");
 	render_tree_lookup(rp, path);
 	render_footer();
 }
