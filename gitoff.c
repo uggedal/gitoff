@@ -401,7 +401,9 @@ render_log(const struct repo *rp, const char *rev)
 {
 	char h[(REPO_NAME_MAX * 2) + 42 + 1];
 
-	snprintf(h, sizeof(h), "<a href=/>Index</a> / <a href=/%s>%s</a> / log", rp->name, rp->name);
+	snprintf(h, sizeof(h),
+	    "<a href=/>Index</a> / <a href=/%s>%s</a> / log",
+	    rp->name, rp->name);
 
 	http_headers("200 Success");
 	render_header(rp->name, h);
@@ -490,7 +492,8 @@ render_ref_item(git_reference *ref, void *data)
 	char hex[GIT_OID_HEXSZ + 1];
 
 	for (i = 0; i < 2; i++) {
-		if (strncmp(git_reference_name(ref), prefixes[i], strlen(prefixes[i])))
+		if (strncmp(git_reference_name(ref), prefixes[i],
+		    strlen(prefixes[i])))
 			continue;
 
 		if (git_reference_type(ref) == GIT_REF_SYMBOLIC)
