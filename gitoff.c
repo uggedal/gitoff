@@ -643,33 +643,25 @@ urlsep(const char *s)
 static void
 route_repo(const char *url, struct repo *rp)
 {
-	char *p = NULL;
+	char *p;
 	size_t n;
 
+	p = strdup(url);
+	n = strlen(p);
+	if (p[n-1] == '/')
+		p[n-1] = '\0';
 	parse_repo(rp);
 
-	if (url[0] == '\0')
+	if (p[0] == '\0' || p[1] == '\0')
 		render_summary(rp);
-	else if (url[1] == 'l' && urlsep(url + 2)) {
-		n = strlen(url);
-		if (n == GIT_OID_HEXSZ + 3)
-			p = strdup(url + 3);
-		else if (n != 2) {
-			render_notfound();
-			return;
-		}
-
-		render_log(rp, p);
-		if (p)
-			free(p);
-	} else if (url[1] == 't' && urlsep(url + 2)) {
-		if (url[3] == '\0')
-			render_tree(rp, "\0");
-		else
-			render_tree(rp, url + 3);
+	else if (p[1] == 'l' && urlsep(p + 2)) {
+		render_log(rp, p + 3);
+	} else if (p[1] == 't' && urlsep(p + 2)) {
+		render_tree(rp, p + 3);
 	} else
 		render_notfound();
 
+	free(p);
 	git_repository_free(rp->handle);
 }
 
