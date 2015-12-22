@@ -57,7 +57,7 @@ geprintf(const char *fmt, ...)
 
 	if ((err = giterr_last()) != NULL && err->message != NULL) {
 		fputc(' ', stderr);
-		puts(err->message);
+		fputs(err->message, stderr);
 	} else
 		fputc('\n', stderr);
 	exit(1);
