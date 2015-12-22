@@ -237,7 +237,7 @@ http_headers(const char *status)
 }
 
 static void
-render_header(const char *title, const char *heading)
+render_header(const char *title)
 {
 	printf("<!doctype html>\n"
 	    "<html>\n"
@@ -245,9 +245,14 @@ render_header(const char *title, const char *heading)
 	    "<title>%s</title>\n"
 	    "<link href=/gitoff.css rel=stylesheet>\n"
 	    "</head>\n"
-	    "<body>\n"
-	    "<h1>%s</h1>\n",
-	    title, heading ? heading : title);
+	    "<body>\n",
+	    title);
+}
+
+static void
+render_title(const char *title)
+{
+	printf("<h1>%s</h1>\n", title);
 }
 
 static void
@@ -260,7 +265,8 @@ static void
 render_notfound(void)
 {
 	http_headers("404 Not Found");
-	render_header("404 Not Found", NULL);
+	render_header("404 Not Found");
+	render_title("404 Not Found");
 	render_footer();
 }
 
@@ -287,7 +293,8 @@ render_index(const struct repos *rsp)
 	qsort(rsp->repos, rsp->n, sizeof(*rsp->repos), repocmp);
 
 	http_headers("200 Success");
-	render_header("Index", NULL);
+	render_header("Index");
+	render_title("Index");
 	if (rsp->n > 0) {
 		puts("<table>\n"
 		    "<tr>\n"
@@ -399,17 +406,11 @@ render_log_list(const struct repo *rp, size_t n, const char *rev)
 static void
 render_log(const struct repo *rp, const char *rev)
 {
-	char h[(REPO_NAME_MAX * 2) + 42 + 1];
-
-	snprintf(h, sizeof(h),
-	    "<a href=/>Index</a> / <a href=/%s>%s</a> / log",
-	    rp->name, rp->name);
-
 	http_headers("200 Success");
-	render_header(rp->name, h);
-
+	render_header(rp->name);
+	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / log</h1>\n",
+	    rp->name, rp->name);
 	render_log_list(rp, 0, rev);
-
 	render_footer();
 }
 
@@ -566,23 +567,11 @@ render_tree_lookup(const struct repo *rp, const char *path)
 static void
 render_tree(const struct repo *rp, const char *path)
 {
-	char *h;
-	size_t n;
-
-	n = REPO_NAME_MAX + (strlen(rp->name) * 2) + strlen(path) + 39 + 1;
-
-	if ((h = malloc(n)) == NULL)
-		eprintf("malloc");
-
-	snprintf(h, n, "<a href=/>Index</a> / <a href=/%s>%s</a> / %s",
-	    rp->name, rp->name, path);
-
 	http_headers("200 Success");
-	render_header(rp->name, h);
-	free(h);
-
+	render_header(rp->name);
+	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / %s</h1>\n",
+	    rp->name, rp->name, path);
 	render_tree_lookup(rp, path);
-
 	render_footer();
 }
 
@@ -644,12 +633,9 @@ render_refs(const struct repo *rp)
 static void
 render_summary(const struct repo *rp)
 {
-	char h[REPO_NAME_MAX + 22 + 1];
-
-	snprintf(h, sizeof(h), "<a href=/>Index</a> / %s", rp->name);
-
 	http_headers("200 Success");
-	render_header(rp->name, h);
+	render_header(rp->name);
+	printf("<h1><a href=/>Index</a> / %s</h1>\n", rp->name);
 
 	printf("<h2>\n"
 	    "<a href=/%s/l>Log</a>\n"
