@@ -474,7 +474,45 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 static void
 render_tree_blob(const struct repo *rp, const git_blob *b)
 {
-	return;
+	char *nfmt = "<a href=#l%d id=l%d>%d</a>\n";
+	const char *s;
+	git_off_t len;
+	off_t i = 0;
+	size_t n = 1;
+
+	if (git_blob_is_binary(b)) {
+		puts("<p>Binary file</p>");
+		return;
+	}
+
+	s = git_blob_rawcontent(b);
+	len = git_blob_rawsize(b);
+
+	puts("<table id=blob>\n"
+	    "<tr>\n"
+	    "<td class=r>\n"
+	    "<pre>");
+
+	if (n) {
+		printf(nfmt, n, n, n);
+		while (i < len - 1) {
+			if (s[i] == '\n') {
+				n++;
+				printf(nfmt, n, n, n);
+			}
+			i++;
+		}
+	}
+
+	puts("</pre>\n"
+	    "</td>\n"
+	    "<td>\n"
+	    "<pre>");
+	htmlesc(s);
+	puts("</pre>\n"
+	    "</td>\n"
+	    "</tr>\n"
+	    "</table>");
 }
 
 static void
@@ -514,7 +552,7 @@ render_tree_lookup(const struct repo *rp, const char *path)
 		git_object_free(obj);
 		break;
 	case GIT_OBJ_BLOB:
-		render_tree_blob(rp, (git_blob *)te);
+		render_tree_blob(rp, (git_blob *)obj);
 		git_object_free(obj);
 		break;
 	default:

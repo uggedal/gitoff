@@ -32,3 +32,15 @@ a {
 a:hover {
 	text-decoration: underline;
 }
+
+#blob a {
+	color: #999;
+	text-decoration: none;
+}
+#blob a:hover {
+	color: blue;
+	text-decoration: none;
+}
+#blob :target {
+	color: #333;
+}
