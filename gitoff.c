@@ -306,6 +306,7 @@ static void
 render_log_link(const struct repo *rp, const git_commit *ci)
 {
 	char hex[GIT_OID_HEXSZ + 1];
+
 	git_oid_tostr(hex, sizeof(hex), git_commit_id(ci));
 
 	printf("<tr>\n"
@@ -479,16 +480,43 @@ render_tree(const struct repo *rp, const char *path)
 }
 
 static int
-render_ref_item(const char *ref, void *data)
+render_ref_item(git_reference *ref, void *data)
 {
-	const char *prefix = (const char *)data;
+	const char *prefixes[] = {"refs/heads/", "refs/tags/"};
+	int i;
+	struct repo *rp = data;
+	git_reference *res = NULL;
+	const git_oid *oid;
+	char hex[GIT_OID_HEXSZ + 1];
 
-	if (strncmp(ref, prefix, strlen(prefix)))
-		return 0;
-	printf("<tr>\n"
-	    "<td>%s</td>\n"
-	    "</tr>\n",
-	    ref + strlen(prefix));
+	for (i =0; i < 2; i++) {
+		if (strncmp(git_reference_name(ref), prefixes[i], strlen(prefixes[i])))
+			continue;
+
+		if (git_reference_type(ref) == GIT_REF_SYMBOLIC)
+			if (git_reference_resolve(&res, ref))
+				geprintf("ref resolve");
+
+		oid = git_reference_target(res ? res : ref);
+		git_oid_tostr(hex, sizeof(hex), oid);
+
+		printf("<tr>\n"
+		    "<td>%s</td>\n"
+		    "<td>\n"
+		    "<a href=/%s/c/%s>%.*s</a>\n"
+		    "</td>\n"
+		    "<td>%s</td>\n"
+		    "</tr>\n",
+		    git_reference_name(ref) + strlen(prefixes[i]),
+		    rp->name,
+		    hex,
+		    OBJ_ABBREV,
+		    hex,
+		    i == 0 ? "Branch" : "Tag");
+
+		if (res)
+			git_reference_free(res);
+	}
 	return 0;
 }
 
@@ -497,15 +525,11 @@ render_refs(const struct repo *rp)
 {
 	puts("<table>\n"
 	    "<tr>\n"
-	    "<th>Branch</th>\n"
+	    "<th>Name</th>\n"
+	    "<th>Id</th>\n"
+	    "<th>Type</th>\n"
 	    "</tr>");
-	git_reference_foreach_name(rp->handle, &render_ref_item, "refs/heads/");
-	puts("</table>");
-	puts("<table>\n"
-	    "<tr>\n"
-	    "<th>Tag</th>\n"
-	    "</tr>");
-	git_reference_foreach_name(rp->handle, &render_ref_item, "refs/tags/");
+	git_reference_foreach(rp->handle, &render_ref_item, (struct repo *)rp);
 	puts("</table>");
 }
 
