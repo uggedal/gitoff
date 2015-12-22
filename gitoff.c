@@ -473,7 +473,7 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 }
 
 static void
-render_tree_blob(const struct repo *rp, const git_blob *b)
+render_tree_blob(const git_blob *b)
 {
 	char *nfmt = "<a href=#l%d id=l%d>%d</a>\n";
 	const char *s;
@@ -553,7 +553,7 @@ render_tree_lookup(const struct repo *rp, const char *path)
 		git_object_free(obj);
 		break;
 	case GIT_OBJ_BLOB:
-		render_tree_blob(rp, (git_blob *)obj);
+		render_tree_blob((git_blob *)obj);
 		git_object_free(obj);
 		break;
 	default:
