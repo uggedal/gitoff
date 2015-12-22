@@ -42,7 +42,7 @@ eprintf(const char *fmt, ...)
 		fputc(' ', stderr);
 		perror(NULL);
 	}
-	exit(1); /* TODO: HTML 500 response in stead? */
+	exit(1);
 }
 
 void
@@ -60,7 +60,7 @@ geprintf(const char *fmt, ...)
 		puts(err->message);
 	} else
 		fputc('\n', stderr);
-	exit(1); /* TODO: HTML 500 response in stead? */
+	exit(1);
 }
 
 void
@@ -232,8 +232,6 @@ http_headers(const char *status)
 {
 	printf("Content-Type: text/html; charset=UTF-8\n"
 	    "Status: %s\n\n", status);
-	/* TODO: abort for HEAD requests */
-	/* TODO: cache headers */
 }
 
 static void
