@@ -667,9 +667,9 @@ route_repo(const char *url, struct repo *rp)
 	if (p[0] == '\0' || p[1] == '\0')
 		render_summary(rp);
 	else if (p[1] == 'l' && urlsep(p + 2))
-		render_log(rp, p + 3);
+		render_log(rp, p[2] == '\0' ? "\0" : p + 3);
 	else if (p[1] == 't' && urlsep(p + 2))
-		render_tree(rp, p + 3);
+		render_tree(rp, p[2] == '\0' ? "\0" : p + 3);
 	else if (p[1] == 'c' && p[2] == '/')
 		render_commit(rp, p + 3);
 	else
