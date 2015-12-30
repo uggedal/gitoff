@@ -637,10 +637,22 @@ render_summary(const struct repo *rp)
 static void
 render_commit(const struct repo *rp, const char *rev)
 {
+	git_object *obj = NULL;
+	git_oid *id;
+	char hex[GIT_OID_HEXSZ + 1];
+
+	if (git_revparse_single(&obj, rp->handle, rev)) {
+		render_notfound();
+		return;
+	}
+
+	id = git_object_id(obj);
+	git_oid_tostr(hex, sizeof(hex), id);
+
 	http_headers("200 Success");
 	render_header(rp->name);
 	printf("<h1><a href=/>Index</a> / %s / ", rp->name);
-	htmlesc(rev);
+	htmlesc(hex);
 	puts("</h1>");
 
 	render_footer();
