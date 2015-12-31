@@ -704,6 +704,10 @@ render_commit(const struct repo *rp, const char *rev)
 
 	puts("</table>");
 
+	puts("<pre>");
+	htmlesc(git_commit_message(ci));
+	puts("</pre>");
+
 	render_footer();
 }
 
