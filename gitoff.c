@@ -677,6 +677,7 @@ render_commit(const struct repo *rp, const char *rev)
 	const git_oid *id;
 	const git_signature *sig;
 	char hex[GIT_OID_HEXSZ + 1];
+	unsigned int i, n;
 
 	if (git_revparse_single(&obj, rp->handle, rev)) {
 		render_notfound();
@@ -701,6 +702,19 @@ render_commit(const struct repo *rp, const char *rev)
 		render_signature("Committer", sig);
 	if ((sig = git_commit_author(ci)) != NULL)
 		render_signature("Author", sig);
+
+	if ((n = git_commit_parentcount(ci)) > 0) {
+		printf("<tr>\n"
+		    "<td>Parent%c</td>\n"
+		    "<td>", n > 1 ? 's' : '\0');
+		for (i = 0; i < n; i++) {
+			git_oid_tostr(hex, sizeof(hex),
+			    git_commit_parent_id(ci, i));
+			printf("<a href=/%s/c/%s>%.*s</a> ",
+			    rp->name, hex, OBJ_ABBREV, hex);
+		}
+		puts("</td>\n</tr>");
+	}
 
 	puts("</table>");
 
