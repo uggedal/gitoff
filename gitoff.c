@@ -116,6 +116,25 @@ printgt(const git_time_t gt)
 	    m.tm_min);
 }
 
+void
+printgo(int o)
+{
+	int h, m;
+	char sign;
+
+	sign = '+';
+
+	if (o < 0) {
+		sign = '-';
+		o = -o;
+	}
+
+	h = o / 60;
+	m = o % 60;
+
+	printf("%c%02d%02d", sign, h, m);
+}
+
 static int
 has_file(const char *base, const char *file, int isdir)
 {
@@ -635,10 +654,28 @@ render_summary(const struct repo *rp)
 }
 
 static void
+render_signature(const char *title, const git_signature *sig)
+{
+	printf("<tr>\n<td>%s</td>\n<td>", title);
+	htmlesc(sig->name);
+	htmlesc(" <");
+	htmlesc(sig->email);
+	htmlesc(">");
+	puts("</td>\n</tr>");
+	puts("<tr>\n<td>Date</td><td>");
+	printgt(sig->when.time);
+	puts(" ");
+	printgo(sig->when.offset);
+	puts("</td>\n</tr>");
+}
+
+static void
 render_commit(const struct repo *rp, const char *rev)
 {
 	git_object *obj = NULL;
-	git_oid *id;
+	git_commit *ci = NULL;
+	const git_oid *id;
+	const git_signature *sig;
 	char hex[GIT_OID_HEXSZ + 1];
 
 	if (git_revparse_single(&obj, rp->handle, rev)) {
@@ -649,11 +686,23 @@ render_commit(const struct repo *rp, const char *rev)
 	id = git_object_id(obj);
 	git_oid_tostr(hex, sizeof(hex), id);
 
+	if (git_commit_lookup(&ci, rp->handle, id))
+		geprintf("commit lookup");
+
 	http_headers("200 Success");
 	render_header(rp->name);
 	printf("<h1><a href=/>Index</a> / %s / ", rp->name);
 	htmlesc(hex);
 	puts("</h1>");
+
+	puts("<table>");
+
+	if ((sig = git_commit_committer(ci)) != NULL)
+		render_signature("Committer", sig);
+	if ((sig = git_commit_author(ci)) != NULL)
+		render_signature("Author", sig);
+
+	puts("</table>");
 
 	render_footer();
 }
