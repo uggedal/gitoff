@@ -674,6 +674,10 @@ render_commit(const struct repo *rp, const char *rev)
 {
 	git_object *obj = NULL;
 	git_commit *ci = NULL;
+	git_commit *parent = NULL;
+	git_tree *tree, *parent_tree;
+	git_diff *diff;
+	git_diff_options opts;
 	const git_oid *id;
 	const git_signature *sig;
 	char hex[GIT_OID_HEXSZ + 1];
@@ -721,6 +725,26 @@ render_commit(const struct repo *rp, const char *rev)
 	puts("<pre>");
 	htmlesc(git_commit_message(ci));
 	puts("</pre>");
+
+	if (git_commit_tree(&tree, ci))
+		geprintf("commit tree");
+
+	if (!git_commit_parent(&parent, ci, 0)) {
+		if (git_commit_tree(&parent_tree, parent))
+			geprintf("commit tree");
+	} else {
+		parent = NULL;
+		parent_tree = NULL;
+	}
+
+	git_diff_init_options(&opts, GIT_DIFF_OPTIONS_VERSION);
+	if (git_diff_tree_to_tree(&diff, rp->handle, tree, parent_tree, &opts))
+		geprintf("diff tree to tree");
+
+	git_diff_free(diff);
+	git_tree_free(tree);
+	git_tree_free(parent_tree);
+	git_commit_free(ci);
 
 	render_footer();
 }
