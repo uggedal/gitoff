@@ -337,7 +337,17 @@ render_log_link(const struct repo *rp, const git_commit *ci)
 	    "<td>&nbsp;</td>\n"
 	    "<td><a href=/%s/l/%s>Next &raquo;</a></td>\n"
 	    "<td>&nbsp;</td>\n"
+	    "<td>&nbsp;</td>\n"
 	    "</tr>\n", rp->name, hex);
+}
+
+static void
+render_signature_name(const git_signature *sig)
+{
+	htmlesc(sig->name);
+	htmlesc(" <");
+	htmlesc(sig->email);
+	htmlesc(">");
 }
 
 static void
@@ -345,10 +355,12 @@ render_log_line(const struct repo *rp, const git_commit *ci)
 {
 	char hex[GIT_OID_HEXSZ + 1];
 	char title[TITLE_MAX + 1];
+	const git_signature *sig;
 
 	git_oid_tostr(hex, sizeof(hex), git_commit_id(ci));
 	strlcpy(title, git_commit_message(ci), sizeof(title));
 	abbrev(title, TITLE_MAX);
+
 
 	puts("<tr>\n<td>");
 	printgt(git_commit_time(ci));
@@ -356,6 +368,11 @@ render_log_line(const struct repo *rp, const git_commit *ci)
 	    "<td><a href=/%s/c/%s>%.*s</a></td>\n"
 	    "<td>", rp->name, hex, OBJ_ABBREV, hex);
 	htmlesc(title);
+	puts("</td>\n<td>");
+	if ((sig = git_commit_author(ci)) != NULL)
+		render_signature_name(sig);
+	else
+		puts("&nbsp;");
 	puts("</td>\n</tr>");
 }
 
@@ -373,6 +390,7 @@ render_log_list(const struct repo *rp, size_t n, const char *rev)
 	    "<th>Date</th>\n"
 	    "<th>Id</th>\n"
 	    "<th>Subject</th>"
+	    "<th>Author</th>"
 	    "</tr>");
 
 	if (git_revwalk_new(&w, rp->handle))
@@ -662,10 +680,7 @@ static void
 render_signature(const char *title, const git_signature *sig)
 {
 	printf("<tr>\n<td>%s</td>\n<td>", title);
-	htmlesc(sig->name);
-	htmlesc(" <");
-	htmlesc(sig->email);
-	htmlesc(">");
+	render_signature_name(sig);
 	puts("</td>\n</tr>");
 	puts("<tr>\n<td>Date</td><td>");
 	printgt(sig->when.time);
