@@ -64,29 +64,34 @@ geprintf(const char *fmt, ...)
 }
 
 void
+htmlescchar(const char c)
+{
+	switch(c) {
+	case '&':
+		fputs("&amp;", stdout);
+		break;
+	case '<':
+		fputs("&lt;", stdout);
+		break;
+	case '>':
+		fputs("&gt;", stdout);
+		break;
+	case '\"':
+		fputs("&#34;", stdout);
+		break;
+	case '\'':
+		fputs("&#39;", stdout);
+		break;
+	default:
+		putchar(c);
+	}
+}
+
+void
 htmlesc(const char *s)
 {
-	for (; s && *s; s++) {
-		switch(*s) {
-		case '&':
-			fputs("&amp;", stdout);
-			break;
-		case '<':
-			fputs("&lt;", stdout);
-			break;
-		case '>':
-			fputs("&gt;", stdout);
-			break;
-		case '\"':
-			fputs("&#34;", stdout);
-			break;
-		case '\'':
-			fputs("&#39;", stdout);
-			break;
-		default:
-			putchar(*s);
-		}
-	}
+	for (; s && *s; s++)
+		htmlescchar(*s);
 }
 
 void
@@ -673,6 +678,8 @@ static int
 render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
     const git_diff_line *line, void *data)
 {
+	size_t i;
+
 	(void)delta;
 	(void)hunk;
 	(void)data;
@@ -687,7 +694,8 @@ render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
 		break;
 	}
 
-	fwrite(line->content, 1, line->content_len, stdout);
+	for (i = 0; i < line->content_len; i++)
+		htmlescchar(line->content[i]);
 
 	return 0;
 }
