@@ -807,7 +807,7 @@ render_commit(const struct repo *rp, const char *rev)
 	}
 
 	git_diff_init_options(&opts, GIT_DIFF_OPTIONS_VERSION);
-	if (git_diff_tree_to_tree(&diff, rp->handle, tree, parent_tree, &opts))
+	if (git_diff_tree_to_tree(&diff, rp->handle, parent_tree, tree, &opts))
 		geprintf("diff tree to tree");
 
 	puts("<pre id=diff>");
