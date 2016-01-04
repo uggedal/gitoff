@@ -669,6 +669,29 @@ render_signature(const char *title, const git_signature *sig)
 	puts("</td>\n</tr>");
 }
 
+static int
+render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
+    const git_diff_line *line, void *data)
+{
+	(void)delta;
+	(void)hunk;
+	(void)data;
+
+	switch (line->origin) {
+	case GIT_DIFF_LINE_CONTEXT:
+	case GIT_DIFF_LINE_ADDITION:
+	case GIT_DIFF_LINE_DELETION:
+		putchar(line->origin);
+		break;
+	default:
+		break;
+	}
+
+	fwrite(line->content, 1, line->content_len, stdout);
+
+	return 0;
+}
+
 static void
 render_commit(const struct repo *rp, const char *rev)
 {
@@ -722,7 +745,7 @@ render_commit(const struct repo *rp, const char *rev)
 
 	puts("</table>");
 
-	puts("<pre>");
+	puts("<pre id=msg>");
 	htmlesc(git_commit_message(ci));
 	puts("</pre>");
 
@@ -740,6 +763,10 @@ render_commit(const struct repo *rp, const char *rev)
 	git_diff_init_options(&opts, GIT_DIFF_OPTIONS_VERSION);
 	if (git_diff_tree_to_tree(&diff, rp->handle, tree, parent_tree, &opts))
 		geprintf("diff tree to tree");
+
+	puts("<pre>");
+	git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, render_diff_line, NULL);
+	puts("</pre>");
 
 	git_diff_free(diff);
 	git_tree_free(tree);
