@@ -689,6 +689,32 @@ render_signature(const char *title, const git_signature *sig)
 	puts("</td>\n</tr>");
 }
 
+static void
+render_commit_header(const struct repo *rp, git_commit *ci)
+{
+	const git_signature *sig;
+	unsigned int i, n;
+	char hex[GIT_OID_HEXSZ + 1];
+
+	if ((sig = git_commit_committer(ci)) != NULL)
+		render_signature("Committer", sig);
+	if ((sig = git_commit_author(ci)) != NULL)
+		render_signature("Author", sig);
+
+	if ((n = git_commit_parentcount(ci)) > 0) {
+		printf("<tr>\n"
+		    "<td class=b>Parent%c</td>\n"
+		    "<td>", n > 1 ? 's' : '\0');
+		for (i = 0; i < n; i++) {
+			git_oid_tostr(hex, sizeof(hex),
+			    git_commit_parent_id(ci, i));
+			printf("<a href=/%s/c/%s>%.*s</a> ",
+			    rp->name, hex, OBJ_ABBREV, hex);
+		}
+		puts("</td>\n</tr>");
+	}
+}
+
 static int
 render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
     const git_diff_line *line, void *data)
@@ -748,9 +774,7 @@ render_commit(const struct repo *rp, const char *rev)
 	git_diff *diff;
 	git_diff_options opts;
 	const git_oid *id;
-	const git_signature *sig;
 	char hex[GIT_OID_HEXSZ + 1];
-	unsigned int i, n;
 
 	if (git_revparse_single(&obj, rp->handle, rev)) {
 		render_notfound();
@@ -770,25 +794,7 @@ render_commit(const struct repo *rp, const char *rev)
 	puts("</h1>");
 
 	puts("<table>");
-
-	if ((sig = git_commit_committer(ci)) != NULL)
-		render_signature("Committer", sig);
-	if ((sig = git_commit_author(ci)) != NULL)
-		render_signature("Author", sig);
-
-	if ((n = git_commit_parentcount(ci)) > 0) {
-		printf("<tr>\n"
-		    "<td class=b>Parent%c</td>\n"
-		    "<td>", n > 1 ? 's' : '\0');
-		for (i = 0; i < n; i++) {
-			git_oid_tostr(hex, sizeof(hex),
-			    git_commit_parent_id(ci, i));
-			printf("<a href=/%s/c/%s>%.*s</a> ",
-			    rp->name, hex, OBJ_ABBREV, hex);
-		}
-		puts("</td>\n</tr>");
-	}
-
+	render_commit_header(rp, ci);
 	puts("</table>");
 
 	puts("<pre id=msg>");
