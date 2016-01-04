@@ -679,10 +679,10 @@ render_summary(const struct repo *rp)
 static void
 render_signature(const char *title, const git_signature *sig)
 {
-	printf("<tr>\n<td>%s</td>\n<td>", title);
+	printf("<tr>\n<td class=b>%s</td>\n<td>", title);
 	render_signature_name(sig);
 	puts("</td>\n</tr>");
-	puts("<tr>\n<td>Date</td><td>");
+	puts("<tr>\n<td class=b>Date</td><td>");
 	printgt(sig->when.time);
 	puts(" ");
 	printgo(sig->when.offset);
@@ -778,7 +778,7 @@ render_commit(const struct repo *rp, const char *rev)
 
 	if ((n = git_commit_parentcount(ci)) > 0) {
 		printf("<tr>\n"
-		    "<td>Parent%c</td>\n"
+		    "<td class=b>Parent%c</td>\n"
 		    "<td>", n > 1 ? 's' : '\0');
 		for (i = 0; i < n; i++) {
 			git_oid_tostr(hex, sizeof(hex),
