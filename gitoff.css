@@ -54,3 +54,19 @@ a:hover {
 #msg {
 	padding-bottom: 1em;
 }
+
+#diff {
+	color: #333;
+}
+#diff .a {
+	color: #060;
+}
+#diff .d {
+	color: #900;
+}
+#diff .f {
+	font-weight: bold;
+}
+#diff .h {
+	color: #066;
+}

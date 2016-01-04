@@ -679,23 +679,46 @@ render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
     const git_diff_line *line, void *data)
 {
 	size_t i;
+	char c;
+
+	c = '\0';
 
 	(void)delta;
 	(void)hunk;
 	(void)data;
 
 	switch (line->origin) {
-	case GIT_DIFF_LINE_CONTEXT:
 	case GIT_DIFF_LINE_ADDITION:
+	case GIT_DIFF_LINE_ADD_EOFNL:
+		c = 'a';
+		break;
 	case GIT_DIFF_LINE_DELETION:
-		putchar(line->origin);
+	case GIT_DIFF_LINE_DEL_EOFNL:
+		c = 'd';
+		break;
+	case GIT_DIFF_LINE_FILE_HDR:
+		c = 'f';
+		break;
+	case GIT_DIFF_LINE_HUNK_HDR:
+		c = 'h';
 		break;
 	default:
 		break;
 	}
 
-	for (i = 0; i < line->content_len; i++)
+	if (c != '\0')
+		printf("<span class=%c>", c);
+
+	if (line->origin == GIT_DIFF_LINE_CONTEXT ||
+	    line->origin == GIT_DIFF_LINE_ADDITION ||
+	    line->origin == GIT_DIFF_LINE_DELETION)
+		putchar(line->origin);
+
+	for (i = 0; i < line->content_len - (c == '\0' ? 0 : 1); i++)
 		htmlescchar(line->content[i]);
+
+	if (c != '\0')
+		puts("</span>");
 
 	return 0;
 }
@@ -772,7 +795,7 @@ render_commit(const struct repo *rp, const char *rev)
 	if (git_diff_tree_to_tree(&diff, rp->handle, tree, parent_tree, &opts))
 		geprintf("diff tree to tree");
 
-	puts("<pre>");
+	puts("<pre id=diff>");
 	git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, render_diff_line, NULL);
 	puts("</pre>");
 
