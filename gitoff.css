@@ -9,7 +9,7 @@ h1 {
 	line-height: 32px;
 }
 
-h1, #msg {
+h1, #msg, #stats {
 	border-bottom: 1px dashed #999;
 }
 
@@ -54,17 +54,17 @@ a:hover {
 	color: #333;
 }
 
-#msg {
+#msg, #stats {
 	padding-bottom: 1em;
 }
 
 #diff {
 	color: #333;
 }
-#diff .a {
+#diff .a, td.a {
 	color: #060;
 }
-#diff .d {
+#diff .d, td.d {
 	color: #900;
 }
 #diff .f {

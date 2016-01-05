@@ -716,6 +716,45 @@ render_commit_header(const struct repo *rp, git_commit *ci)
 	}
 }
 
+static void
+render_commit_stats(git_diff *diff)
+{
+	const git_diff_delta *delta;
+	git_patch *patch;
+	size_t n, i, add, del;
+
+	for (i = 0, n = git_diff_num_deltas(diff); i < n; i++) {
+		patch = NULL;
+		if (git_patch_from_diff(&patch, diff, i))
+			geprintf("patch from diff");
+
+		delta = git_patch_get_delta(patch);
+
+		printf("<tr>\n<td>%s", delta->old_file.path);
+		if (strcmp(delta->old_file.path, delta->new_file.path))
+			printf(" => %s", delta->new_file.path);
+
+		puts("</td>\n");
+
+		if (delta->flags & GIT_DIFF_FLAG_BINARY)
+			printf("<td colspan=2>%" PRIu64 " -> %" PRIu64
+			    " bytes</td>",
+			    delta->old_file.size, delta->new_file.size);
+		else {
+			add = 0;
+			del = 0;
+			if (git_patch_line_stats(NULL, &add, &del, patch))
+				geprintf("patch line stats");
+
+			printf("<td class='a r'>+%zu</td>"
+			    "<td class='d r'>-%zu</td>\n", add, del);
+
+			git_patch_free(patch);
+		}
+		puts("</td>\n<tr>");
+	}
+}
+
 static int
 render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
     const git_diff_line *line, void *data)
@@ -816,6 +855,10 @@ render_commit(const struct repo *rp, const char *rev)
 	git_diff_init_options(&opts, GIT_DIFF_OPTIONS_VERSION);
 	if (git_diff_tree_to_tree(&diff, rp->handle, parent_tree, tree, &opts))
 		geprintf("diff tree to tree");
+
+	puts("<div id=stats>\n<table>");
+	render_commit_stats(diff);
+	puts("</table>\n</div>");
 
 	puts("<pre id=diff>");
 	git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, render_diff_line, NULL);
