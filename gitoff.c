@@ -677,12 +677,12 @@ render_summary(const struct repo *rp)
 }
 
 static void
-render_signature(const char *title, const git_signature *sig)
+render_signature(const char *t1, const char *t2, const git_signature *sig)
 {
-	printf("<tr>\n<td class=b>%s</td>\n<td>", title);
+	printf("<tr>\n<td class=b>%s</td>\n<td>", t1);
 	render_signature_name(sig);
-	puts("</td>\n</tr>");
-	puts("<tr>\n<td class=b>Date</td><td>");
+	puts("</td>\n</td>");
+	printf("<tr>\n<td class=b>%s</td>\n<td>", t2);
 	printgt(sig->when.time);
 	puts(" ");
 	printgo(sig->when.offset);
@@ -692,14 +692,15 @@ render_signature(const char *title, const git_signature *sig)
 static void
 render_commit_header(const struct repo *rp, git_commit *ci)
 {
-	const git_signature *sig;
+	const git_signature *s1, *s2;
 	unsigned int i, n;
 	char hex[GIT_OID_HEXSZ + 1];
 
-	if ((sig = git_commit_committer(ci)) != NULL)
-		render_signature("Committer", sig);
-	if ((sig = git_commit_author(ci)) != NULL)
-		render_signature("Author", sig);
+	if ((s1 = git_commit_author(ci)) != NULL)
+		render_signature("Author", "Date", s1);
+	if ((s2 = git_commit_committer(ci)) != NULL &&
+	    strcmp(s1->name, s2->name) && strcmp(s1->email, s2->email))
+		render_signature("Committer", "Commit date", s2);
 
 	if ((n = git_commit_parentcount(ci)) > 0) {
 		printf("<tr>\n"
