@@ -753,8 +753,9 @@ render_commit_stats(git_diff *diff)
 
 		delta = git_patch_get_delta(patch);
 
-		fputs("<tr>\n<td>", stdout);
+		printf("<tr>\n<td><a href=#f%zu>", i);
 		htmlesc(delta->old_file.path);
+		fputs("</a>", stdout);
 		if (strcmp(delta->old_file.path, delta->new_file.path)) {
 			fputs(" => ", stdout);
 			htmlesc(delta->new_file.path);
@@ -792,14 +793,14 @@ static int
 render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
     const git_diff_line *line, void *data)
 {
-	size_t i;
+	size_t i, *nfiles;
 	char c;
 
+	nfiles = data;
 	c = '\0';
 
 	(void)delta;
 	(void)hunk;
-	(void)data;
 
 	switch (line->origin) {
 	case GIT_DIFF_LINE_ADDITION:
@@ -820,8 +821,14 @@ render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
 		break;
 	}
 
-	if (c != '\0')
-		printf("<span class=%c>", c);
+	if (c != '\0') {
+		printf("<span class=%c", c);
+		if (c == 'f') {
+			printf(" id=f%zu", *nfiles);
+			*nfiles = *nfiles + 1;
+		}
+		putchar('>');
+	}
 
 	if (line->origin == GIT_DIFF_LINE_CONTEXT ||
 	    line->origin == GIT_DIFF_LINE_ADDITION ||
@@ -849,6 +856,9 @@ render_commit(const struct repo *rp, const char *rev)
 	git_diff_find_options find_opts;
 	const git_oid *id;
 	char hex[GIT_OID_HEXSZ + 1];
+	size_t nfiles;
+
+	nfiles = 0;
 
 	if (git_revparse_single(&obj, rp->handle, rev)) {
 		render_notfound();
@@ -899,7 +909,7 @@ render_commit(const struct repo *rp, const char *rev)
 	puts("</table>\n</div>");
 
 	puts("<pre id=diff>");
-	git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, render_diff_line, NULL);
+	git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, render_diff_line, &nfiles);
 	puts("</pre>");
 
 	git_diff_free(diff);
