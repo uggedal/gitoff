@@ -473,11 +473,11 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 		parent[0] = '\0';
 
 	if (base[0] != '\0') {
-		printf("<tr>\n<td colspan=2><a href='/%s/t", rp->name);
+		printf("<tr>\n<td colspan=2><a href=/%s/t", rp->name);
 		if (strlen(parent))
 			putchar('/');
 		urienc(parent);
-		puts("'>..</a>/</td>\n</tr>");
+		puts(">..</a>/</td>\n</tr>");
 	}
 
 	for (i = 0, n = git_tree_entrycount(t); i < n; i++) {
@@ -501,12 +501,12 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 			continue;
 		}
 
-		printf("<tr>\n<td><a href='/%s/t/", rp->name);
+		printf("<tr>\n<td><a href=/%s/t/", rp->name);
 		urienc(base);
 		if (strlen(base))
 		        putchar('/');
 		urienc(git_tree_entry_name(te));
-		fputs("'>", stdout);
+		putchar('>');
 		htmlesc(git_tree_entry_name(te));
 		puts("</a>");
 		if (dec != '\0')
