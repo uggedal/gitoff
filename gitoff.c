@@ -724,8 +724,8 @@ render_commit_header(const struct repo *rp, git_commit *ci)
 
 	if ((n = git_commit_parentcount(ci)) > 0) {
 		printf("<tr>\n"
-		    "<td class=b>Parent%c</td>\n"
-		    "<td>", n > 1 ? 's' : '\0');
+		    "<td class=b>Parent%s</td>\n"
+		    "<td>", n > 1 ? "s" : "");
 		for (i = 0; i < n; i++) {
 			git_oid_tostr(hex, sizeof(hex),
 			    git_commit_parent_id(ci, i));
