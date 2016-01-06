@@ -780,7 +780,7 @@ render_commit_stats(git_diff *diff)
 
 			git_patch_free(patch);
 		}
-		puts("</td>\n<tr>");
+		puts("</tr>");
 	}
 	if (n > 1)
 		printf("<tr>\n<td>%zu files</td>\n<td class='a r'>+%zu</td>\n"
