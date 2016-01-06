@@ -753,9 +753,12 @@ render_commit_stats(git_diff *diff)
 
 		delta = git_patch_get_delta(patch);
 
-		printf("<tr>\n<td>%s", delta->old_file.path);
-		if (strcmp(delta->old_file.path, delta->new_file.path))
-			printf(" => %s", delta->new_file.path);
+		fputs("<tr>\n<td>", stdout);
+		htmlesc(delta->old_file.path);
+		if (strcmp(delta->old_file.path, delta->new_file.path)) {
+			fputs(" => ", stdout);
+			htmlesc(delta->new_file.path);
+		}
 
 		puts("</td>\n");
 
