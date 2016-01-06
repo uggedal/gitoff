@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -92,6 +93,17 @@ htmlesc(const char *s)
 {
 	for (; s && *s; s++)
 		htmlescchar(*s);
+}
+
+void
+urienc(const char *s)
+{
+	for (; s && *s; s++)
+		if ((unsigned char)*s <= 0x1F || (unsigned char)*s >= 0x7F ||
+		    strchr(" <>\"%{}|\\^`", *s))
+			printf("%%%02X", (unsigned char)*s);
+		else
+			putchar(*s);
 }
 
 void
@@ -460,11 +472,13 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 	if (parent[0] == '.' && parent[1] == '\0')
 		parent[0] = '\0';
 
-	if (base[0] != '\0')
-		printf("<tr>\n"
-		    "<td><a href=/%s/t%s%s>..</a>/</td>\n"
-		    "<td>&nbsp;</td>\n"
-		    "</tr>\n", rp->name, strlen(parent) ? "/" : "\0", parent);
+	if (base[0] != '\0') {
+		printf("<tr>\n<td colspan=2><a href='/%s/t", rp->name);
+		if (strlen(parent))
+			putchar('/');
+		urienc(parent);
+		puts("'>..</a>/</td>\n</tr>");
+	}
 
 	for (i = 0, n = git_tree_entrycount(t); i < n; i++) {
 		if ((te = git_tree_entry_byindex(t, i)) == NULL)
@@ -487,11 +501,17 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 			continue;
 		}
 
-		printf("<tr>\n"
-		    "<td><a href=/%s/t/%s%s%s>%s</a>%c</td>\n"
-		    "<td class=r>\n", rp->name, base,
-		    strlen(base) ? "/" : "\0", git_tree_entry_name(te),
-		    git_tree_entry_name(te), dec);
+		printf("<tr>\n<td><a href='/%s/t/", rp->name);
+		urienc(base);
+		if (strlen(base))
+		        putchar('/');
+		urienc(git_tree_entry_name(te));
+		fputs("'>", stdout);
+		htmlesc(git_tree_entry_name(te));
+		puts("</a>");
+		if (dec != '\0')
+			putchar(dec);
+		fputs("</td>\n<td class=r>", stdout);
 		if (size > 0)
 			printf("%zu", size);
 		else
