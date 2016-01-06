@@ -701,7 +701,7 @@ render_signature(const char *t1, const char *t2, const git_signature *sig)
 {
 	printf("<tr>\n<td class=b>%s</td>\n<td>", t1);
 	render_signature_name(sig);
-	puts("</td>\n</td>");
+	puts("</td>\n</tr>");
 	printf("<tr>\n<td class=b>%s</td>\n<td>", t2);
 	printgt(sig->when.time);
 	puts(" ");
