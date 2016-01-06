@@ -813,6 +813,7 @@ render_commit(const struct repo *rp, const char *rev)
 	git_tree *tree, *parent_tree;
 	git_diff *diff;
 	git_diff_options opts;
+	git_diff_find_options find_opts;
 	const git_oid *id;
 	char hex[GIT_OID_HEXSZ + 1];
 
@@ -855,6 +856,9 @@ render_commit(const struct repo *rp, const char *rev)
 	git_diff_init_options(&opts, GIT_DIFF_OPTIONS_VERSION);
 	if (git_diff_tree_to_tree(&diff, rp->handle, parent_tree, tree, &opts))
 		geprintf("diff tree to tree");
+	git_diff_find_init_options(&find_opts, GIT_DIFF_FIND_OPTIONS_VERSION);
+	if (git_diff_find_similar(diff, &find_opts))
+		geprintf("diff find similar");
 
 	puts("<div id=stats>\n<table>");
 	render_commit_stats(diff);
