@@ -741,7 +741,10 @@ render_commit_stats(git_diff *diff)
 {
 	const git_diff_delta *delta;
 	git_patch *patch;
-	size_t n, i, add, del;
+	size_t n, i, add, del, total_add, total_del;
+
+	total_add = 0;
+	total_del = 0;
 
 	for (i = 0, n = git_diff_num_deltas(diff); i < n; i++) {
 		patch = NULL;
@@ -766,6 +769,9 @@ render_commit_stats(git_diff *diff)
 			if (git_patch_line_stats(NULL, &add, &del, patch))
 				geprintf("patch line stats");
 
+			total_add += add;
+			total_del += del;
+
 			printf("<td class='a r'>+%zu</td>"
 			    "<td class='d r'>-%zu</td>\n", add, del);
 
@@ -773,6 +779,10 @@ render_commit_stats(git_diff *diff)
 		}
 		puts("</td>\n<tr>");
 	}
+	if (n > 1)
+		printf("<tr>\n<td>%zu files</td>\n<td class='a r'>+%zu</td>\n"
+		    "<td class='d r'>-%zu</td>\n</tr>\n",
+		    n, total_add, total_del);
 }
 
 static int
