@@ -508,7 +508,7 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 		urienc(git_tree_entry_name(te));
 		putchar('>');
 		htmlesc(git_tree_entry_name(te));
-		puts("</a>");
+		fputs("</a>", stdout);
 		if (dec != '\0')
 			putchar(dec);
 		fputs("</td>\n<td class=r>", stdout);
