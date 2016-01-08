@@ -635,7 +635,7 @@ render_ref_item(git_reference *ref, void *data)
 	int i;
 	struct repo *rp = data;
 	git_reference *res = NULL;
-	const git_oid *oid;
+	git_object *obj;
 	char hex[GIT_OID_HEXSZ + 1];
 
 	for (i = 0; i < 2; i++) {
@@ -647,8 +647,9 @@ render_ref_item(git_reference *ref, void *data)
 			if (git_reference_resolve(&res, ref))
 				geprintf("ref resolve");
 
-		oid = git_reference_target(res ? res : ref);
-		git_oid_tostr(hex, sizeof(hex), oid);
+		if (git_reference_peel(&obj, res ? res : ref, GIT_OBJ_ANY))
+			geprintf("ref peel");
+		git_oid_tostr(hex, sizeof(hex), git_object_id(obj));
 
 		printf("<tr>\n"
 		    "<td>%s</td>\n"
@@ -658,6 +659,7 @@ render_ref_item(git_reference *ref, void *data)
 		    git_reference_name(ref) + strlen(prefixes[i]), rp->name,
 		    hex, OBJ_ABBREV, hex, i == 0 ? "Branch" : "Tag");
 
+		git_object_free(obj);
 		if (res)
 			git_reference_free(res);
 	}
