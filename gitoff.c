@@ -271,15 +271,13 @@ http_headers(const char *status)
 }
 
 static void
-render_header(const char *title)
+render_header(const char *title, const char *id)
 {
 	printf("<!doctype html>\n"
-	    "<html>\n"
-	    "<head>\n"
+	    "<html>\n<head>\n"
 	    "<title>%s</title>\n"
 	    "<link href=/gitoff.css rel=stylesheet>\n"
-	    "</head>\n"
-	    "<body>\n", title);
+	    "</head>\n<body id=%s>\n", title, id);
 }
 
 static void
@@ -298,7 +296,7 @@ static void
 render_notfound(void)
 {
 	http_headers("404 Not Found");
-	render_header("404 Not Found");
+	render_header("404 Not Found", "404");
 	render_title("404 Not Found");
 	render_footer();
 }
@@ -322,7 +320,7 @@ render_index(const struct repos *rsp)
 	qsort(rsp->repos, rsp->n, sizeof(*rsp->repos), repocmp);
 
 	http_headers("200 Success");
-	render_header("Index");
+	render_header("Index", "index");
 	render_title("Index");
 	if (rsp->n > 0) {
 		puts("<table>\n"
@@ -442,7 +440,7 @@ static void
 render_log(const struct repo *rp, const char *rev)
 {
 	http_headers("200 Success");
-	render_header(rp->name);
+	render_header(rp->name, "log");
 	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / log</h1>\n",
 	    rp->name, rp->name);
 	render_log_list(rp, 0, rev);
@@ -619,7 +617,7 @@ static void
 render_tree(const struct repo *rp, const char *path)
 {
 	http_headers("200 Success");
-	render_header(rp->name);
+	render_header(rp->name, "tree");
 	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / ",
 	    rp->name, rp->name);
 	htmlesc(path);
@@ -682,7 +680,7 @@ static void
 render_summary(const struct repo *rp)
 {
 	http_headers("200 Success");
-	render_header(rp->name);
+	render_header(rp->name, "summary");
 	printf("<h1><a href=/>Index</a> / %s</h1>\n", rp->name);
 
 	printf("<h2><a href=/%s/l>Log</a></h2>\n", rp->name);
@@ -878,7 +876,7 @@ render_commit(const struct repo *rp, const char *rev)
 		geprintf("commit lookup");
 
 	http_headers("200 Success");
-	render_header(rp->name);
+	render_header(rp->name, "commit");
 	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / ",
 	    rp->name, rp->name);
 	htmlesc(hex);

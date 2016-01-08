@@ -9,7 +9,7 @@ h1 {
 	line-height: 32px;
 }
 
-h1, #msg, #stats {
+h1, #msg, #stats, #summary #log, #summary #tree {
 	border-bottom: 1px dashed #999;
 }
 
