@@ -289,7 +289,7 @@ render_title(const char *title)
 }
 
 static void
-render_footer()
+render_footer(void)
 {
 	puts("</body>\n</html>");
 }
