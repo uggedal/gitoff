@@ -870,9 +870,10 @@ render_commit(const struct repo *rp, const char *rev)
 	git_oid_tostr(hex, sizeof(hex), id);
 
 	e = git_commit_lookup(&ci, rp->handle, id);
-	if (e == GIT_ENOTFOUND)
+	if (e == GIT_ENOTFOUND) {
 		render_notfound();
-	else if (e)
+		return;
+	} else if (e)
 		geprintf("commit lookup");
 
 	http_headers("200 Success");
