@@ -352,15 +352,6 @@ render_log_link(const struct repo *rp, const git_commit *ci)
 }
 
 static void
-render_signature_name(const git_signature *sig)
-{
-	htmlesc(sig->name);
-	htmlesc(" <");
-	htmlesc(sig->email);
-	htmlesc(">");
-}
-
-static void
 render_log_line(const struct repo *rp, const git_commit *ci)
 {
 	char hex[GIT_OID_HEXSZ + 1];
@@ -380,7 +371,7 @@ render_log_line(const struct repo *rp, const git_commit *ci)
 	htmlesc(title);
 	puts("</td>\n<td>");
 	if ((sig = git_commit_author(ci)) != NULL)
-		render_signature_name(sig);
+		htmlesc(sig->name);
 	else
 		puts("&nbsp;");
 	puts("</td>\n</tr>");
@@ -699,7 +690,10 @@ static void
 render_signature(const char *t1, const char *t2, const git_signature *sig)
 {
 	printf("<tr>\n<td class=b>%s</td>\n<td>", t1);
-	render_signature_name(sig);
+	htmlesc(sig->name);
+	htmlesc(" <");
+	htmlesc(sig->email);
+	htmlesc(">");
 	puts("</td>\n</tr>");
 	printf("<tr>\n<td class=b>%s</td>\n<td>", t2);
 	printgt(sig->when.time);
