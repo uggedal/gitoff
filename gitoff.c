@@ -651,13 +651,12 @@ render_ref_item(git_reference *ref, void *data)
 			geprintf("ref peel");
 		git_oid_tostr(hex, sizeof(hex), git_object_id(obj));
 
-		printf("<tr>\n"
-		    "<td>%s</td>\n"
-		    "<td><a href=/%s/c/%s>%.*s</a></td>\n"
-		    "<td>%s</td>\n"
-		    "</tr>\n",
-		    git_reference_name(ref) + strlen(prefixes[i]), rp->name,
-		    hex, OBJ_ABBREV, hex, i == 0 ? "Branch" : "Tag");
+		fputs("<tr>\n<td>", stdout);
+		htmlesc(git_reference_name(ref) + strlen(prefixes[i]));
+		printf("</td>\n<td><a href=/%s/c/%s>%.*s</a></td>\n"
+		    "<td>%s</td>\n</tr>\n",
+		    rp->name, hex, OBJ_ABBREV, hex,
+		    i == 0 ? "Branch" : "Tag");
 
 		git_object_free(obj);
 		if (res)
