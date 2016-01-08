@@ -847,6 +847,7 @@ render_diff_line(const git_diff_delta *delta, const git_diff_hunk *hunk,
 static void
 render_commit(const struct repo *rp, const char *rev)
 {
+	int e;
 	git_object *obj = NULL;
 	git_commit *ci = NULL;
 	git_commit *parent = NULL;
@@ -868,7 +869,10 @@ render_commit(const struct repo *rp, const char *rev)
 	id = git_object_id(obj);
 	git_oid_tostr(hex, sizeof(hex), id);
 
-	if (git_commit_lookup(&ci, rp->handle, id))
+	e = git_commit_lookup(&ci, rp->handle, id);
+	if (e == GIT_ENOTFOUND)
+		render_notfound();
+	else if (e)
 		geprintf("commit lookup");
 
 	http_headers("200 Success");
