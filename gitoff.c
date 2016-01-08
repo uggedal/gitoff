@@ -125,7 +125,7 @@ printgt(const git_time_t gt)
 	if (gmtime_r(&gt, &m) == NULL)
 		return;
 
-	printf("%.4u-%02u-%02u %02u:%02u",
+	printf("%.4u-%02u-%02u&nbsp;%02u:%02u",
 	    m.tm_year + 1900,
 	    m.tm_mon + 1,
 	    m.tm_mday,

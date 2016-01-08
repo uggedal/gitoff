@@ -27,6 +27,7 @@ th {
 }
 td, th {
 	padding-right: 1em;
+	vertical-align: top;
 }
 td:last-child, th:last-child {
 	padding-right: 0;
