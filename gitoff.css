@@ -9,7 +9,7 @@ h1 {
 	line-height: 32px;
 }
 
-h1, #msg, #stats, #summary #log, #summary #tree {
+h1, #msg, #stats, #summary .log, #summary .tree {
 	border-bottom: 1px dashed #999;
 }
 
@@ -57,7 +57,7 @@ a:hover {
 	color: #333;
 }
 
-#msg, #stats {
+#msg, #stats, #summary .log, #summary .tree {
 	padding-bottom: 1em;
 }
 

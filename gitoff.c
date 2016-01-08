@@ -395,7 +395,7 @@ render_log_list(const struct repo *rp, size_t n, const char *rev)
 	git_oid id;
 	size_t i;
 
-	puts("<table>\n"
+	puts("<div class=log>\n<table>\n"
 	    "<tr>\n"
 	    "<th>Date</th>\n"
 	    "<th>Id</th>\n"
@@ -433,7 +433,7 @@ render_log_list(const struct repo *rp, size_t n, const char *rev)
 	if (obj)
 		git_object_free(obj);
 
-	puts("</table>");
+	puts("</table>\n</div>");
 }
 
 static void
@@ -456,7 +456,7 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 	size_t i, n, size;
 	char dec;
 
-	puts("<table>\n"
+	puts("<div class=tree>\n<table>\n"
 	    "<tr>\n"
 	    "<th>Name</th>\n"
 	    "<th>Size</th>\n"
@@ -518,7 +518,7 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 		git_object_free(obj);
 	}
 
-	puts("</table>");
+	puts("</table>\n</div>");
 }
 
 static void
