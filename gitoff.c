@@ -641,7 +641,7 @@ render_ref_item(git_reference *ref, void *data)
 		git_oid_tostr(hex, sizeof(hex), git_object_id(obj));
 
 		fputs("<tr>\n<td>", stdout);
-		htmlesc(git_reference_name(ref) + strlen(prefixes[i]));
+		htmlesc(git_reference_shorthand(r));
 		printf("</td>\n<td><a href=/%s/c/%s>%.*s</a></td>\n"
 		    "<td>%s</td>\n</tr>\n",
 		    rp->name, hex, OBJ_ABBREV, hex,
