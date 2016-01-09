@@ -620,7 +620,6 @@ render_tree(const struct repo *rp, const char *path)
 static int
 render_ref_item(git_reference *ref, void *data)
 {
-	const char *prefixes[] = {"refs/heads/", "refs/tags/"};
 	int i;
 	struct repo *rp = data;
 	git_reference *res = NULL;
@@ -628,8 +627,8 @@ render_ref_item(git_reference *ref, void *data)
 	char hex[GIT_OID_HEXSZ + 1];
 
 	for (i = 0; i < 2; i++) {
-		if (strncmp(git_reference_name(ref), prefixes[i],
-		    strlen(prefixes[i])))
+		if ((git_reference_is_branch(ref) && i != 0) ||
+		    (git_reference_is_tag(ref) && i != 1))
 			continue;
 
 		if (git_reference_type(ref) == GIT_REF_SYMBOLIC)
