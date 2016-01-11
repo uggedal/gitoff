@@ -802,9 +802,9 @@ render_commit_stats(git_diff *diff)
 		puts("</td>\n");
 
 		if (delta->flags & GIT_DIFF_FLAG_BINARY)
-			printf("<td colspan=2>%" PRIu64 " -> %" PRIu64
-			    " bytes</td>",
-			    delta->old_file.size, delta->new_file.size);
+			printf("<td colspan=2>%ju -> %ju bytes</td>",
+			    (uintmax_t) delta->old_file.size,
+			    (uintmax_t) delta->new_file.size);
 		else {
 			add = 0;
 			del = 0;
