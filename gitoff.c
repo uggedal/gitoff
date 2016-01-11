@@ -617,53 +617,100 @@ render_tree(const struct repo *rp, const char *path)
 	render_footer();
 }
 
-static int
-render_ref_item(git_reference *ref, void *data)
+static void
+render_ref_item(git_reference *ref, const struct repo *rp)
 {
-	int i;
-	struct repo *rp = data;
 	git_reference *res = NULL;
 	git_object *obj;
+	git_commit *ci;
+	const git_signature *sig;
 	char hex[GIT_OID_HEXSZ + 1];
 
-	for (i = 0; i < 2; i++) {
-		if ((git_reference_is_branch(ref) && i != 0) ||
-		    (git_reference_is_tag(ref) && i != 1))
-			continue;
+	if (git_reference_type(ref) == GIT_REF_SYMBOLIC)
+		if (git_reference_resolve(&res, ref))
+			geprintf("ref resolve");
 
-		if (git_reference_type(ref) == GIT_REF_SYMBOLIC)
-			if (git_reference_resolve(&res, ref))
-				geprintf("ref resolve");
+	if (git_reference_peel(&obj, res ? res : ref, GIT_OBJ_ANY))
+		geprintf("ref peel");
+	git_oid_tostr(hex, sizeof(hex), git_object_id(obj));
 
-		if (git_reference_peel(&obj, res ? res : ref, GIT_OBJ_ANY))
-			geprintf("ref peel");
-		git_oid_tostr(hex, sizeof(hex), git_object_id(obj));
+	if (git_commit_lookup(&ci, rp->handle, git_object_id(obj)))
+		geprintf("commit lookup");
+	fputs("<tr>\n<td>", stdout);
+	printgt(git_commit_time(ci));
+	printf("</td>\n<td><a href=/%s/c/%s>%.*s</a></td>\n<td>",
+	    rp->name, hex, OBJ_ABBREV, hex);
+	htmlesc(git_reference_shorthand(ref));
+	puts("</td>\n<td>");
+	if ((sig = git_commit_author(ci)) != NULL)
+		htmlesc(sig->name);
+	else
+		puts("&nbsp;");
+	puts("</td>\n</tr>");
 
-		fputs("<tr>\n<td>", stdout);
-		htmlesc(git_reference_shorthand(ref));
-		printf("</td>\n<td><a href=/%s/c/%s>%.*s</a></td>\n"
-		    "<td>%s</td>\n</tr>\n",
-		    rp->name, hex, OBJ_ABBREV, hex,
-		    i == 0 ? "Branch" : "Tag");
-
-		git_object_free(obj);
-		if (res)
-			git_reference_free(res);
-	}
-	return 0;
+	git_commit_free(ci);
+	git_object_free(obj);
+	if (res)
+		git_reference_free(res);
 }
 
 static void
 render_refs(const struct repo *rp)
 {
-	puts("<table>\n"
-	    "<tr>\n"
-	    "<th>Name</th>\n"
+	git_strarray refs;
+	git_reference *ref;
+	size_t i;
+	int nbranch = 0, ntag = 0;
+
+	char *th = "<table>\n<tr>\n"
+	    "<th>Date</th>\n"
 	    "<th>Id</th>\n"
-	    "<th>Type</th>\n"
-	    "</tr>");
-	git_reference_foreach(rp->handle, &render_ref_item, (struct repo *)rp);
-	puts("</table>");
+	    "<th>Name</th>\n"
+	    "<th>Author</th>\n"
+	    "</tr>";
+
+	git_reference_list(&refs, rp->handle);
+
+	for (i = 0; i < refs.count; ++i) {
+		git_reference_lookup(&ref, rp->handle, refs.strings[i]);
+		if (git_reference_is_branch(ref))
+			nbranch++;
+		if (git_reference_is_tag(ref))
+			ntag++;
+		git_reference_free(ref);
+	}
+
+	if (nbranch) {
+		printf("<h2>Branch%s</h2>\n", nbranch > 1 ? "es" : "");
+		puts(th);
+		for (i = 0; i < refs.count; ++i) {
+			git_reference_lookup(&ref, rp->handle, refs.strings[i]);
+			if (!git_reference_is_branch(ref)) {
+				git_reference_free(ref);
+				continue;
+			}
+			render_ref_item(ref, rp);
+			git_reference_free(ref);
+		}
+		puts("</table>");
+	}
+
+	if (ntag) {
+		printf("<h2>Tag%s</h2>\n", nbranch > 1 ? "s" : "");
+		puts(th);
+		for (i = 0; i < refs.count; ++i) {
+			git_reference_lookup(&ref, rp->handle, refs.strings[i]);
+			if (!git_reference_is_tag(ref)) {
+				git_reference_free(ref);
+				continue;
+			}
+			render_ref_item(ref, rp);
+			git_reference_free(ref);
+		}
+		puts("</table>");
+	}
+
+	git_strarray_free(&refs);
 }
 
 static void
@@ -679,7 +726,6 @@ render_summary(const struct repo *rp)
 	printf("<h2><a href=/%s/t>Tree</a></h2>\n", rp->name);
 	render_tree_lookup(rp, "\0");
 
-	puts("<h2>Refs</h2>");
 	render_refs(rp);
 
 	render_footer();
