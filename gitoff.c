@@ -443,7 +443,7 @@ render_log(const struct repo *rp, const char *rev)
 static void
 render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 {
-	char *parent;
+	char *tmp, *parent;
 	const git_tree_entry *te;
 	git_object *obj;
 	size_t i, n, size;
@@ -455,10 +455,13 @@ render_tree_list(const struct repo *rp, const git_tree *t, const char *base)
 	    "<th>Size</th>\n"
 	    "</tr>");
 
-	if (!(parent = strdup(base)))
+	if (!(tmp = strdup(base)))
 		eprintf("strdup:");
-	if (!(parent = dirname(parent)))
+	if (!(parent = dirname(tmp)))
 		eprintf("dirname:");
+	if (!(parent = strdup(parent)))
+		eprintf("strdup:");
+	free(tmp);
 
 	if (parent[0] == '.' && parent[1] == '\0')
 		parent[0] = '\0';
