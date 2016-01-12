@@ -1,12 +1,12 @@
 include config.mk
 
-SRC = gitoff.c
+SRC = gitoff.c compat/reallocarray.c compat/strlcpy.c
 OBJ = ${SRC:.c=.o}
 
 all: gitoff
 
 .c.o:
-	${CC} -c ${CFLAGS} $<
+	${CC} -c ${CFLAGS} -o $@ -c $<
 
 ${OBJ}: config.mk
 

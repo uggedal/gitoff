@@ -14,6 +14,8 @@
 
 #include <git2.h>
 
+#include "compat.h"
+
 #define REPO_NAME_MAX 64
 #define OBJ_ABBREV 7
 #define TITLE_MAX 50
