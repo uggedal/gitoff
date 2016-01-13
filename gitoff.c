@@ -15,6 +15,7 @@
 #include <git2.h>
 
 #include "compat.h"
+#include "style.h"
 
 #define REPO_NAME_MAX 64
 #define OBJ_ABBREV 7
@@ -278,8 +279,8 @@ render_header(const char *title, const char *id)
 	printf("<!doctype html>\n"
 	    "<html>\n<head>\n"
 	    "<title>%s</title>\n"
-	    "<link href=/gitoff.css rel=stylesheet>\n"
-	    "</head>\n<body id=%s>\n", title, id);
+	    "<style type=text/css>%s</style>\n"
+	    "</head>\n<body id=%s>\n", title, STYLE, id);
 }
 
 static void
