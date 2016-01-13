@@ -1,7 +1,7 @@
 include config.mk
 
-HDR = style.h compat.h
-SRC = gitoff.c compat/reallocarray.c compat/strlcpy.c
+HDR = style.h util.h compat.h
+SRC = gitoff.c util.c compat/reallocarray.c compat/strlcpy.c
 OBJ = ${SRC:.c=.o}
 
 all: gitoff
