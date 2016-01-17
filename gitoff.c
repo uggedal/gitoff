@@ -821,8 +821,8 @@ render_commit(const struct repo *rp, const char *rev)
 
 	http_headers("200 Success");
 	render_header(rp->name, "commit");
-	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / ",
-	    rp->name, rp->name);
+	printf("<h1><a href=/>Index</a> / <a href=/%s>%s</a> / "
+	    "<a href=/%s/l>log</a> / ", rp->name, rp->name, rp->name);
 	htmlesc(hex);
 	puts("</h1>");
 
