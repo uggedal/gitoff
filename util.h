@@ -7,7 +7,9 @@
 #include <git2.h>
 
 void eprintf(const char *, ...);
+void weprintf(const char *, ...);
 void geprintf(const char *, ...);
+void gweprintf(const char *, ...);
 
 void htmlescchar(const char);
 void htmlesc(const char *);

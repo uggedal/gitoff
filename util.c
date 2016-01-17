@@ -1,37 +1,71 @@
 #include "util.h"
 
+const void
+veprintf(const char *fmt, va_list ap)
+{
+	vfprintf(stderr, fmt, ap);
+	if (fmt[0] && fmt[strlen(fmt) - 1] == ':') {
+		fputc(' ', stderr);
+		perror(NULL);
+	}
+}
+
 void
 eprintf(const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
+	veprintf(fmt, ap);
 	va_end(ap);
 
-	if (fmt[0] && fmt[strlen(fmt) - 1] == ':') {
-		fputc(' ', stderr);
-		perror(NULL);
-	}
 	exit(1);
 }
 
 void
-geprintf(const char *fmt, ...)
+weprintf(const char *fmt, ...)
 {
 	va_list ap;
-	const git_error *err;
 
 	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
+	veprintf(fmt, ap);
 	va_end(ap);
+}
+
+void
+gvprintf(const char *fmt, va_list ap)
+{
+	const git_error *err;
+
+	vfprintf(stderr, fmt, ap);
 
 	if ((err = giterr_last()) != NULL && err->message != NULL) {
 		fputc(' ', stderr);
 		fputs(err->message, stderr);
 	} else
 		fputc('\n', stderr);
+}
+
+void
+geprintf(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	gvprintf(fmt, ap);
+	va_end(ap);
+
 	exit(1);
+}
+
+void
+gweprintf(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	gvprintf(fmt, ap);
+	va_end(ap);
 }
 
 void
