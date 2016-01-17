@@ -101,7 +101,7 @@ find_repos(struct repos *rsp, const char *dir, int depth)
 	closedir(dp);
 }
 
-static void
+static int
 parse_repo(struct repo *rp)
 {
 	git_repository *r;
@@ -110,8 +110,10 @@ parse_repo(struct repo *rp)
 
 	if (git_repository_open_bare(&r, rp->path))
 		geprintf("repo open %s:", rp->path);
-	if (git_repository_head(&ref, r))
-		geprintf("repo head %s:", rp->path);
+	if (git_repository_head(&ref, r)) {
+		gweprintf("repo head %s:", rp->path);
+		return -1;
+	}
 	if (git_commit_lookup(&ci, r, git_reference_target(ref)))
 		geprintf("commit lookup %s:", rp->path);
 
@@ -119,6 +121,8 @@ parse_repo(struct repo *rp)
 	rp->handle = r;
 
 	git_reference_free(ref);
+
+	return 0;
 }
 
 static void
@@ -884,7 +888,11 @@ route_repo(const char *url, struct repo *rp)
 	n = strlen(p);
 	if (p[n-1] == '/')
 		p[n-1] = '\0';
-	parse_repo(rp);
+
+	if (parse_repo(rp)) {
+		render_notfound();
+		goto cleanup;
+	}
 
 	if (p[0] == '\0' || p[1] == '\0')
 		render_summary(rp);
@@ -897,6 +905,7 @@ route_repo(const char *url, struct repo *rp)
 	else
 		render_notfound();
 
+cleanup:
 	free(p);
 	git_repository_free(rp->handle);
 }
