@@ -14,6 +14,7 @@
 #define REPO_NAME_MAX 64
 #define OBJ_ABBREV 7
 #define TITLE_MAX 50
+#define LOG_PER_PAGE 1000
 
 struct repo {
 	char path[PATH_MAX];
@@ -286,10 +287,10 @@ render_log_list(const struct repo *rp, size_t n, const char *rev)
 	for (i = 0; !git_revwalk_next(&id, w); i++) {
 		if (git_commit_lookup(&ci, rp->handle, &id))
 			geprintf("commit lookup %s:", rp->path);
-		if (n > 0 && i >= n)
+		if (n > 0 && i >= n) {
 			git_commit_free(ci);
 			break;
-		else if (i == 1000) {
+		} else if (i == LOG_PER_PAGE) {
 			render_log_link(rp, ci);
 			git_commit_free(ci);
 			break;
