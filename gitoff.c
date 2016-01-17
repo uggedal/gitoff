@@ -636,7 +636,9 @@ render_commit_header(const struct repo *rp, git_commit *ci)
 	unsigned int i, n;
 	char hex[GIT_OID_HEXSZ + 1];
 	git_revwalk *w;
-	git_oid child_id;
+	git_oid cur_id;
+	git_oid prev_id;
+	size_t j;
 
 	if ((s1 = git_commit_author(ci)) != NULL)
 		render_signature("Author", "Date", s1);
@@ -658,15 +660,20 @@ render_commit_header(const struct repo *rp, git_commit *ci)
 
 	if (git_revwalk_new(&w, rp->handle))
 		geprintf("revwalk new %s:", rp->path);
-	git_revwalk_sorting(w, GIT_SORT_TOPOLOGICAL);
-	if (git_revwalk_push(w, git_commit_id(ci)))
-		geprintf("revwalk push %s:", rp->path);
+	if (git_revwalk_push_head(w))
+		geprintf("revwalk push head %s:", rp->path);
+	git_revwalk_sorting(w, GIT_SORT_TIME);
 
-	if (!git_revwalk_next(&child_id, w)) {
-		git_oid_tostr(hex, sizeof(hex), &child_id);
-		printf("<tr>\n<td class=b>Child</td>\n<td>"
-		    "<a href=/%s/c/%s>%.*s</a></td></tr>",
-		    rp->name, hex, OBJ_ABBREV, hex);
+	/* Find child for the last LOG_PER_PAGE commits */
+	for (j = 0; j < LOG_PER_PAGE && !git_revwalk_next(&cur_id, w); j++) {
+		if (!git_oid_cmp(&cur_id, git_commit_id(ci)) &&
+		    !git_oid_iszero(&prev_id)) {
+			git_oid_tostr(hex, sizeof(hex), &prev_id);
+			printf("<tr>\n<td class=b>Child</td>\n<td>"
+			    "<a href=/%s/c/%s>%.*s</a></td></tr>",
+			    rp->name, hex, OBJ_ABBREV, hex);
+		}
+		prev_id = cur_id;
 	}
 
 	git_revwalk_free(w);
