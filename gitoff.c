@@ -283,16 +283,19 @@ render_log_list(const struct repo *rp, size_t n, const char *rev)
 
 	git_revwalk_sorting(w, GIT_SORT_TIME);
 
-	for (i = 0; !git_revwalk_next(&id, w); i++, git_commit_free(ci)) {
+	for (i = 0; !git_revwalk_next(&id, w); i++) {
 		if (git_commit_lookup(&ci, rp->handle, &id))
 			geprintf("commit lookup %s:", rp->path);
 		if (n > 0 && i >= n)
+			git_commit_free(ci);
 			break;
 		else if (i == 1000) {
 			render_log_link(rp, ci);
+			git_commit_free(ci);
 			break;
 		}
 		render_log_line(rp, ci);
+		git_commit_free(ci);
 	}
 
 	git_revwalk_free(w);
