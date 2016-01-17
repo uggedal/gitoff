@@ -631,6 +631,8 @@ render_commit_header(const struct repo *rp, git_commit *ci)
 	const git_signature *s1, *s2;
 	unsigned int i, n;
 	char hex[GIT_OID_HEXSZ + 1];
+	git_revwalk *w;
+	git_oid child_id;
 
 	if ((s1 = git_commit_author(ci)) != NULL)
 		render_signature("Author", "Date", s1);
@@ -639,9 +641,8 @@ render_commit_header(const struct repo *rp, git_commit *ci)
 		render_signature("Committer", "Commit date", s2);
 
 	if ((n = git_commit_parentcount(ci)) > 0) {
-		printf("<tr>\n"
-		    "<td class=b>Parent%s</td>\n"
-		    "<td>", n > 1 ? "s" : "");
+		printf("<tr>\n<td class=b>Parent%s</td>\n<td>",
+		    n > 1 ? "s" : "");
 		for (i = 0; i < n; i++) {
 			git_oid_tostr(hex, sizeof(hex),
 			    git_commit_parent_id(ci, i));
@@ -650,6 +651,21 @@ render_commit_header(const struct repo *rp, git_commit *ci)
 		}
 		puts("</td>\n</tr>");
 	}
+
+	if (git_revwalk_new(&w, rp->handle))
+		geprintf("revwalk new %s:", rp->path);
+	git_revwalk_sorting(w, GIT_SORT_TOPOLOGICAL);
+	if (git_revwalk_push(w, git_commit_id(ci)))
+		geprintf("revwalk push %s:", rp->path);
+
+	if (!git_revwalk_next(&child_id, w)) {
+		git_oid_tostr(hex, sizeof(hex), &child_id);
+		printf("<tr>\n<td class=b>Child</td>\n<td>"
+		    "<a href=/%s/c/%s>%.*s</a></td></tr>",
+		    rp->name, hex, OBJ_ABBREV, hex);
+	}
+
+	git_revwalk_free(w);
 }
 
 static void
